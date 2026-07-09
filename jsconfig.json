@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+
+    "paths": {
+      "@/*": ["src/*"],
+      "api/*": ["src/api/*"],
+      "assets/*": ["src/assets/*"],
+      "components/*": ["src/components/*"],
+      "contexts/*": ["src/contexts/*"],
+      "hooks/*": ["src/hooks/*"],
+      "layouts/*": ["src/layouts/*"],
+      "models/*": ["src/models/*"],
+      "pages/*": ["src/pages/*"],
+      "routes/*": ["src/routes/*"],
+      "services/*": ["src/services/*"],
+      "storage/*": ["src/storage/*"],
+      "styles/*": ["src/styles/*"],
+      "utils/*": ["src/utils/*"]
+    }
+  },
+
+  "include": [
+    "src/**/*",
+    "App.jsx"
+  ]
+}
