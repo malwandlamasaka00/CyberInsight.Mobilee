@@ -1,7 +1,7 @@
 // App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './src/context/ThemeContext';
+import { ThemeProvider } from './src/contexts/ThemeContext';  // Changed from context to contexts
 import Layout from './src/components/Layout/Layout';
 import Dashboard from './src/pages/dashboard/Dashboard';
 import History from './src/pages/history/History';

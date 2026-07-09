@@ -177,3 +177,118 @@
     justify-content: flex-start;
   }
 }
+/* src/pages/dashboard/components/RecentReportsCard.css */
+.recent-reports {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.recent-reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.recent-reports-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.report-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.2s;
+}
+
+.report-item:hover {
+  background: var(--bg-hover);
+}
+
+.report-item:last-child {
+  border-bottom: none;
+}
+
+.report-item-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.report-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--blue-light);
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.report-domain {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.report-type {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--blue);
+  background: var(--blue-light);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.report-date {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  color: var(--text-light);
+}
+
+.report-size {
+  font-size: 0.65rem;
+  color: var(--text-light);
+}
+
+.report-view-btn,
+.report-download-btn {
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-view-btn:hover {
+  color: var(--blue);
+  background: var(--blue-bg);
+}
+
+.report-download-btn:hover {
+  color: var(--green-dark);
+  background: var(--green-light);
+}
