@@ -1,46 +1,21 @@
-// src/context/ThemeContext.jsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
+// src/components/ThemeToggle/ThemeToggle.jsx
+import React from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';  // Changed from context to contexts
+import './ThemeToggle.css';
 
-const ThemeContext = createContext();
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
-
-export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(() => {
-    // Check localStorage or system preference
-    const saved = localStorage.getItem('theme');
-    if (saved) {
-      return saved === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-
-  useEffect(() => {
-    // Apply theme to body
-    if (isDark) {
-      document.body.classList.add('dark-theme');
-      document.body.classList.remove('light-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.add('light-theme');
-      document.body.classList.remove('dark-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
+const ThemeToggle = () => {
+  const { isDark, toggleTheme } = useTheme();
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <button 
+      className={`theme-toggle cursor-target ${isDark ? 'dark' : 'light'}`}
+      onClick={toggleTheme}
+      title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+    >
+      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
   );
 };
+
+export default ThemeToggle;

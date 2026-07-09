@@ -132,3 +132,129 @@
     grid-template-columns: 1fr;
   }
 }
+/* src/pages/dashboard/components/OverallScoreCard.css */
+.score-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.score-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.score-card-icon {
+  color: var(--blue);
+}
+
+.score-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.score-circle-container {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 1.5rem;
+}
+
+.score-circle {
+  width: 180px;
+  height: 180px;
+  transform: rotate(-90deg);
+}
+
+.score-circle-bg {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 12;
+}
+
+.score-circle-progress {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-out;
+}
+
+.score-circle-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+}
+
+.score-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.score-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.score-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+}
+
+.score-stat.critical {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.score-stat.passed {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.score-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  display: block;
+}
+
+.score-stat-label {
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
+
+.score-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.score-footer-item {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+  .score-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
