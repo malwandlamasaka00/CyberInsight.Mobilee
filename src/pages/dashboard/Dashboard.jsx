@@ -123,7 +123,22 @@ const Dashboard = ({ user, onLogout }) => {
       whyItMatters: 'Outdated technologies can contain known vulnerabilities. Knowing your tech stack helps you keep everything patched and secure.',
       checks: ['Web Server', 'Programming Language', 'JavaScript Framework', 'CMS', 'CDN', 'Reverse Proxy']
     },
-    
+    {
+      id: 'security-score',
+      title: 'Security Score',
+      icon: 'fa-shield-halved',
+      color: '#00cec9',
+      description: 'After completing all checks, calculate an overall security score based on predefined security rules.',
+      details: [
+        { label: 'SSL Status', description: 'Evaluates SSL/TLS configuration strength.' },
+        { label: 'Security Headers', description: 'Assesses HTTP security header implementation.' },
+        { label: 'Domain Configuration', description: 'Reviews domain registration and WHOIS data.' },
+        { label: 'DNS Configuration', description: 'Checks DNS records for proper configuration.' },
+        { label: 'Open Services', description: 'Evaluates network services and open ports.' }
+      ],
+      whyItMatters: 'A single score provides a quick overview of your website\'s security posture, making it easy to track improvements over time.',
+      checks: ['SSL Status', 'Security Headers', 'Domain Configuration', 'DNS Configuration', 'Open Services']
+    }
   ];
 
   const handleScan = (url) => {
@@ -182,6 +197,65 @@ const Dashboard = ({ user, onLogout }) => {
       status: results.score >= 80 ? 'pass' : results.score >= 60 ? 'warn' : 'fail',
     };
     setScanHistory([newEntry, ...scanHistory]);
+  };
+
+  // ===== Handle selecting a scan from Profile =====
+  const handleProfileSelectScan = (scanItem) => {
+    const selectedScan = scanHistory.find(item => item.id === scanItem.id);
+    if (!selectedScan) return;
+    
+    const score = selectedScan.score;
+    const url = selectedScan.url;
+    
+    const results = {
+      url,
+      score,
+      ssl: { 
+        valid: true, 
+        daysLeft: Math.floor(Math.random() * 100) + 30, 
+        issuer: "Let's Encrypt Authority X3", 
+        expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString() 
+      },
+      headers: { 
+        'content-security-policy': Math.random() > 0.2 ? "default-src 'self'" : 'Missing',
+        'strict-transport-security': Math.random() > 0.2 ? 'max-age=31536000; includeSubDomains' : 'Missing',
+        'x-frame-options': Math.random() > 0.2 ? 'DENY' : 'SAMEORIGIN',
+        'x-content-type-options': Math.random() > 0.2 ? 'nosniff' : 'Missing'
+      },
+      dns: {
+        aRecords: ['192.168.1.1', '192.168.1.2'],
+        mxRecords: ['mail.example.com'],
+        txtRecords: ['v=spf1 include:_spf.example.com ~all'],
+        nameServers: ['ns1.example.com', 'ns2.example.com']
+      },
+      network: {
+        hostAvailable: true,
+        responseTime: `${Math.floor(Math.random() * 50) + 20}ms`,
+        openPorts: [
+          { port: 80, service: 'HTTP', status: 'open' },
+          { port: 443, service: 'HTTPS', status: 'open' }
+        ]
+      },
+      tech: {
+        webServer: 'nginx/1.18.0',
+        framework: 'React 18.2.0',
+        cdn: 'Cloudflare',
+        programmingLanguage: 'Python 3.9'
+      },
+      findings: [
+        { label: 'SSL Certificate', status: 'pass', detail: `Valid · ${Math.floor(Math.random() * 100) + 30} days left`, category: 'SSL/TLS', severity: 'low' },
+        { label: 'Content-Security-Policy', status: Math.random() > 0.2 ? 'pass' : 'warn', detail: Math.random() > 0.2 ? 'Configured properly' : 'Missing', category: 'HTTP Headers', severity: Math.random() > 0.2 ? 'low' : 'medium' },
+        { label: 'HSTS', status: Math.random() > 0.2 ? 'pass' : 'warn', detail: Math.random() > 0.2 ? 'Enabled with valid config' : 'Missing', category: 'HTTP Headers', severity: Math.random() > 0.2 ? 'low' : 'medium' },
+        { label: 'SPF Record', status: Math.random() > 0.2 ? 'pass' : 'warn', detail: Math.random() > 0.2 ? 'Configured with proper records' : 'Missing', category: 'DNS', severity: Math.random() > 0.2 ? 'low' : 'medium' },
+        { label: 'DKIM', status: Math.random() > 0.3 ? 'pass' : 'warn', detail: Math.random() > 0.3 ? 'Configured properly' : 'Not configured', category: 'DNS', severity: Math.random() > 0.3 ? 'low' : 'medium' },
+        { label: 'Open Ports', status: 'pass', detail: 'No unnecessary ports exposed', category: 'Network', severity: 'low' },
+        { label: 'Technology Stack', status: 'pass', detail: 'Modern framework detected', category: 'Technology', severity: 'low' }
+      ]
+    };
+    
+    setScanResults(results);
+    setSelectedUrl(url);
+    setCurrentView('results');
   };
 
   const handleViewHistory = () => setCurrentView('history');
@@ -318,7 +392,7 @@ const Dashboard = ({ user, onLogout }) => {
   }
 
   // ============================================================
-  // HISTORY VIEW
+  // HISTORY FULL PAGE VIEW - BEAUTIFUL DESIGN
   // ============================================================
   if (currentView === 'history') {
     return (
@@ -338,54 +412,8 @@ const Dashboard = ({ user, onLogout }) => {
           </button>
         </div>
 
-        <div className="history-full-view">
-          <div className="history-header-full">
-            <h2><i className="fas fa-clock-rotate-left"></i> Scan History</h2>
-            <div className="history-actions">
-              <button className="btn-secondary" onClick={handleBackToDashboard}>
-                <i className="fas fa-arrow-left"></i> Back
-              </button>
-            </div>
-          </div>
-
-          <div className="history-stats">
-            <div className="stat-item">
-              <span className="stat-label">Total Scans</span>
-              <span className="stat-value">{scanHistory.length}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Average Score</span>
-              <span className="stat-value">
-                {scanHistory.length > 0 
-                  ? Math.round(scanHistory.reduce((acc, curr) => acc + curr.score, 0) / scanHistory.length) 
-                  : 0}
-              </span>
-            </div>
-          </div>
-
-          {scanHistory.length > 0 ? (
-            <div className="history-list-full">
-              {scanHistory.map((item) => (
-                <div className="history-item-full" key={item.id}>
-                  <div className="history-item-left">
-                    <span className="history-site">{item.url}</span>
-                    <span className="history-date">{item.date}</span>
-                  </div>
-                  <div className="history-item-right">
-                    <span className={`score ${item.score >= 80 ? 'score-high' : item.score >= 60 ? 'score-medium' : 'score-low'}`}>
-                      {item.score}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="history-empty-full">
-              <i className="fas fa-inbox"></i>
-              <p>No scan history found. Run your first scan!</p>
-            </div>
-          )}
-        </div>
+        {/* Full History Component with beautiful design */}
+        <History history={scanHistory} isFullPage={true} />
       </div>
     );
   }
@@ -411,53 +439,24 @@ const Dashboard = ({ user, onLogout }) => {
           </button>
         </div>
 
-        <div className="profile-full-view">
-          <div className="profile-header-full">
-            <h2><i className="fas fa-user-circle"></i> User Profile</h2>
-            <button className="btn-secondary" onClick={handleBackToDashboard}>
-              <i className="fas fa-arrow-left"></i> Back
-            </button>
-          </div>
-
-          <div className="profile-card-full">
-            <div className="profile-avatar">
-              <i className="fas fa-user-circle"></i>
-            </div>
-            <div className="profile-info">
-              <div className="profile-info-item">
-                <label>Full Name</label>
-                <span>{user?.name || 'Demo User'}</span>
-              </div>
-              <div className="profile-info-item">
-                <label>Email</label>
-                <span>{user?.email || 'demo@cyberinsight.com'}</span>
-              </div>
-              <div className="profile-info-item">
-                <label>Member Since</label>
-                <span>{user?.memberSince || 'Jan 2026'}</span>
-              </div>
-              <div className="profile-info-item">
-                <label>Status</label>
-                <span className="status-badge active">Active</span>
-              </div>
-              <div className="profile-info-item">
-                <label>Total Scans</label>
-                <span>{scanHistory.length}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Profile 
+          user={user} 
+          onLogout={onLogout} 
+          scanHistory={scanHistory}
+          onSelectScan={handleProfileSelectScan}
+        />
       </div>
     );
   }
 
   // ============================================================
-  // MAIN DASHBOARD VIEW WITH POPUP MODALS
+  // MAIN DASHBOARD VIEW - Simple History Preview
   // ============================================================
   const selectedCardData = selectedCard ? featureCards.find(c => c.id === selectedCard) : null;
 
   return (
     <div className="dashboard-page">
+      {/* HEADER */}
       <div className="dash-header">
         <div className="dash-user">
           <i className="fas fa-user-circle"></i>
@@ -475,6 +474,12 @@ const Dashboard = ({ user, onLogout }) => {
           </button>
         </div>
       </div>
+
+      {/* Dashboard Overview Title */}
+      <h1 className="dashboard-overview-title">
+        <i className="fas fa-th-large"></i> Dashboard Overview
+        <span>Monitor your website's security posture at a glance</span>
+      </h1>
 
       {/* Stats Cards */}
       <div className="dash-grid">
@@ -618,8 +623,42 @@ const Dashboard = ({ user, onLogout }) => {
         <Results findings={scanResults.findings || []} />
       )}
       
-      {/* History Preview */}
-      <History history={scanHistory} />
+      {/* History Preview - SIMPLE VERSION for dashboard */}
+      <div className="history-list">
+        <div className="history-header">
+          <span><i className="fas fa-clock-rotate-left"></i> Recent Scans</span>
+          <span className="history-count">{scanHistory?.length || 0} scans</span>
+        </div>
+        {scanHistory && scanHistory.length > 0 ? (
+          scanHistory.slice(0, 3).map((item) => (
+            <div className="history-item" key={item.id}>
+              <div className="history-item-left">
+                <span className="history-status-icon">
+                  {item.status === 'pass' && <i className="fas fa-check-circle" style={{ color: '#1e7b4c' }}></i>}
+                  {item.status === 'warn' && <i className="fas fa-exclamation-triangle" style={{ color: '#b9692b' }}></i>}
+                  {item.status === 'fail' && <i className="fas fa-times-circle" style={{ color: '#b34033' }}></i>}
+                </span>
+                <span className="site">{item.url}</span>
+              </div>
+              <div className="history-item-right">
+                <span className="date">{item.date}</span>
+                <span className={`score ${item.score >= 80 ? 'score-high' : item.score >= 60 ? 'score-medium' : 'score-low'}`}>
+                  {item.score}
+                </span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="history-empty">
+            <p>No scans yet. Run your first scan above!</p>
+          </div>
+        )}
+        {scanHistory && scanHistory.length > 3 && (
+          <div className="history-view-all" onClick={handleViewHistory}>
+            <span>View all {scanHistory.length} scans <i className="fas fa-arrow-right"></i></span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
