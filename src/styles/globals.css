@@ -1,0 +1,61 @@
+/* src/styles/App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Shared button styles used across components */
+.btn-primary {
+  background: #0b2b4a;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.8rem;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1a3d5e;
+  transform: scale(1.01);
+}
+
+/* Splash page */
+.splash-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #f9fcff;
+  min-height: 60vh;
+}
+
+.splash-page i {
+  font-size: 6rem;
+  color: #0b2b4a;
+  background: #e6effa;
+  padding: 2rem;
+  border-radius: 60px;
+  margin-bottom: 2rem;
+}
+
+.splash-page h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #0b2b4a;
+}
+
+.splash-page p {
+  color: #64748b;
+  max-width: 460px;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+}
