@@ -1,0 +1,189 @@
+/* src/pages/ssl-check/SSLCheck.css */
+.ssl-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ssl-header {
+  margin-bottom: 2rem;
+}
+
+.ssl-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ssl-subtitle {
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+.ssl-form-wrapper {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ssl-form {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ssl-input-group {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.ssl-input-group:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: #ffffff;
+}
+
+.ssl-input-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #94a3b8;
+}
+
+.ssl-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: #0f172a;
+  outline: none;
+}
+
+.ssl-btn {
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.ssl-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.ssl-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ssl-btn.checking {
+  background: #64748b;
+}
+
+.ssl-results {
+  margin-top: 1.5rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.ssl-result-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ssl-result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.ssl-result-icon {
+  color: #2563eb;
+}
+
+.ssl-result-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ssl-result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ssl-result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ssl-result-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ssl-result-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.ssl-result-value.valid {
+  color: #16a34a;
+}
+
+.ssl-result-value.highlight {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.ssl-result-value.cipher {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .ssl-container {
+    padding: 1rem;
+  }
+  
+  .ssl-form {
+    flex-direction: column;
+  }
+  
+  .ssl-result-grid {
+    grid-template-columns: 1fr;
+  }
+}

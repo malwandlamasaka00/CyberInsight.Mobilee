@@ -1,0 +1,231 @@
+/* src/pages/dashboard/components/QuickActions.css */
+.quick-actions {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.quick-actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.quick-actions-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.quick-actions-subtitle {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.quick-action-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(37, 99, 235, 0.02));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.quick-action-card:hover::before {
+  opacity: 1;
+}
+
+.quick-action-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.quick-action-card.featured {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.quick-action-card.featured:hover {
+  background: #dbeafe;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.quick-action-card.expanded {
+  padding: 0.75rem 1rem;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.quick-action-card.expanded.featured {
+  background: #dbeafe;
+  border-color: #60a5fa;
+}
+
+.quick-action-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.quick-action-icon {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.quick-action-card:hover .quick-action-icon {
+  transform: scale(1.1);
+}
+
+.quick-action-card.expanded .quick-action-icon {
+  transform: scale(1.1);
+}
+
+.action-blue { background: #dbeafe; color: #2563eb; }
+.action-green { background: #dcfce7; color: #16a34a; }
+.action-purple { background: #f3e8ff; color: #9333ea; }
+.action-indigo { background: #e0e7ff; color: #4f46e5; }
+.action-orange { background: #ffedd5; color: #ea580c; }
+.action-teal { background: #ccfbf1; color: #0d9488; }
+
+.quick-action-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.quick-action-title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #0f172a;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.quick-action-card.expanded .quick-action-title {
+  color: #2563eb;
+}
+
+.quick-action-card.featured.expanded .quick-action-title {
+  color: #1d4ed8;
+}
+
+.quick-action-description {
+  font-size: 0.65rem;
+  color: #64748b;
+  margin: 0.125rem 0 0 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  transform: translateY(-5px);
+}
+
+.quick-action-description.visible {
+  max-height: 50px;
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 0.125rem;
+}
+
+.quick-action-arrow-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.quick-action-arrow {
+  color: #94a3b8;
+  transition: all 0.3s ease;
+}
+
+.quick-action-arrow.animate {
+  color: #2563eb;
+  animation: slideRight 0.3s ease;
+}
+
+@keyframes slideRight {
+  0% {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.quick-action-card:hover .quick-action-arrow {
+  color: #64748b;
+}
+
+.quick-action-card.featured:hover .quick-action-arrow {
+  color: #2563eb;
+}
+
+/* Glow effect on featured card */
+.quick-action-card.featured::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.03), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.quick-action-card.featured:hover::after {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}

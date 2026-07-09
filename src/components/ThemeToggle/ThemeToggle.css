@@ -1,0 +1,63 @@
+/* src/components/ThemeToggle/ThemeToggle.css */
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: rotate(15deg);
+}
+
+.theme-toggle.dark {
+  background: var(--bg-secondary);
+  color: var(--yellow);
+  border-color: var(--border-color);
+}
+
+.theme-toggle.dark:hover {
+  background: var(--bg-hover);
+  color: var(--yellow-dark);
+}
+
+.theme-toggle.light {
+  background: var(--bg-secondary);
+  color: var(--orange);
+  border-color: var(--border-color);
+}
+
+.theme-toggle.light:hover {
+  background: var(--bg-hover);
+  color: var(--orange);
+}
+
+/* Animation */
+.theme-toggle svg {
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover svg {
+  transform: rotate(30deg);
+}
+
+@media (max-width: 768px) {
+  .theme-toggle {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+}

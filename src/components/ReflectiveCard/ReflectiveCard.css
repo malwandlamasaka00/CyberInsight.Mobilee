@@ -1,0 +1,305 @@
+/* src/components/ReflectiveCard/ReflectiveCard.css */
+.reflective-card-container {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  height: 480px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0f172a;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  isolation: isolate;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reflective-card-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+.reflective-svg-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.reflective-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.2) scaleX(-1);
+  filter: saturate(var(--saturation, 0)) contrast(120%) brightness(110%) blur(var(--blur-strength, 12px))
+    url(#metallic-displacement);
+  z-index: 0;
+  opacity: 0.9;
+  transition: filter 0.3s ease;
+}
+
+.reflective-video.fallback {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  transform: scale(1);
+  filter: blur(var(--blur-strength, 12px));
+}
+
+.reflective-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: var(--roughness, 0.4);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.reflective-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(255, 255, 255, 0) 50%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: var(--metalness, 1);
+}
+
+.reflective-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.reflective-content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 32px;
+  color: var(--text-color, white);
+  background: var(--overlay-color, rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(4px);
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 16px;
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.security-icon {
+  color: #3b82f6;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-shield {
+  color: #3b82f6;
+  opacity: 0.6;
+}
+
+.status-icon {
+  opacity: 0.6;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Card Body */
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.15);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.user-avatar svg {
+  color: #3b82f6;
+}
+
+.user-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #ffffff 60%, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.user-role {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  opacity: 0.6;
+  margin: 0;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* Card Footer */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 20px;
+}
+
+.id-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.id-section .label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.id-section .value {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: #e2e8f0;
+}
+
+.fingerprint-section {
+  display: flex;
+  align-items: center;
+}
+
+.fingerprint-icon {
+  opacity: 0.3;
+  color: #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reflective-card-container {
+    max-width: 100%;
+    height: 400px;
+  }
+  .reflective-content {
+    padding: 20px 24px;
+  }
+  .user-name {
+    font-size: 18px;
+  }
+  .user-avatar {
+    width: 56px;
+    height: 56px;
+  }
+  .user-avatar svg {
+    width: 32px;
+    height: 32px;
+  }
+  .id-section .value {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reflective-card-container {
+    height: 350px;
+  }
+  .reflective-content {
+    padding: 16px 18px;
+  }
+  .security-badge {
+    font-size: 8px;
+    padding: 4px 8px;
+  }
+  .user-name {
+    font-size: 16px;
+  }
+  .user-role {
+    font-size: 9px;
+  }
+  .id-section .value {
+    font-size: 10px;
+  }
+  .fingerprint-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
