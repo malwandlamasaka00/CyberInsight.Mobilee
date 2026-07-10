@@ -1,6 +1,7 @@
 // src/pages/scan/Scan.jsx
 import React, { useState } from 'react';
 import { scanService } from '../../services/scanService';
+import { historyService } from "../../services/historyService";
 import { 
   Globe, 
   Shield, 
@@ -222,6 +223,59 @@ const formattedResults = {
 
 
     setScanResults(formattedResults);
+    historyService.saveScan({
+  id: Date.now(),
+  domain: url.replace(/^https?:\/\//, ""),
+  date: new Date().toISOString(),
+
+  score: formattedResults.overallScore,
+
+  status:
+    formattedResults.overallScore >= 80
+      ? "pass"
+      : formattedResults.overallScore >= 60
+      ? "warn"
+      : "fail",
+
+  critical: formattedResults.checks.filter(
+    check => check.status === "Failed"
+  ).length,
+
+  sslStatus:
+    formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Passed"
+      ? "valid"
+      : formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Warning"
+      ? "expiring"
+      : "expired",
+
+  cspStatus:
+    formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
+      ? "configured"
+      : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
+      ? "partial"
+      : "missing",
+
+  hstsStatus:
+    formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
+      ? "enabled"
+      : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
+      ? "weak"
+      : "missing",
+
+  spfStatus:
+    formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Passed"
+      ? "configured"
+      : formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Warning"
+      ? "partial"
+      : "missing",
+
+  portsStatus:
+    formattedResults.checks.find(c => c.name === "Network Security")?.status === "Passed"
+      ? "secured"
+      : formattedResults.checks.find(c => c.name === "Network Security")?.status === "Warning"
+      ? "warning"
+      : "exposed"
+});
 
 
   } catch(error){

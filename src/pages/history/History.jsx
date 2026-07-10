@@ -1,5 +1,6 @@
 // src/pages/history/History.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { historyService } from "../../services/historyService";
 import { 
   Search, 
   Download, 
@@ -35,112 +36,12 @@ const History = () => {
   const [exporting, setExporting] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const scans = [
-    { 
-      id: 1, 
-      domain: 'example.com', 
-      date: '2026-07-09T14:30:00Z', 
-      score: 92, 
-      status: 'pass', 
-      critical: 0,
-      sslStatus: 'valid',
-      cspStatus: 'configured',
-      hstsStatus: 'enabled',
-      spfStatus: 'configured',
-      portsStatus: 'secured'
-    },
-    { 
-      id: 2, 
-      domain: 'test-site.org', 
-      date: '2026-07-09T12:15:00Z', 
-      score: 65, 
-      status: 'warn', 
-      critical: 2,
-      sslStatus: 'expiring',
-      cspStatus: 'partial',
-      hstsStatus: 'weak',
-      spfStatus: 'partial',
-      portsStatus: 'warning'
-    },
-    { 
-      id: 3, 
-      domain: 'myapp.io', 
-      date: '2026-07-08T18:45:00Z', 
-      score: 45, 
-      status: 'fail', 
-      critical: 4,
-      sslStatus: 'expired',
-      cspStatus: 'missing',
-      hstsStatus: 'missing',
-      spfStatus: 'missing',
-      portsStatus: 'exposed'
-    },
-    { 
-      id: 4, 
-      domain: 'secure-site.com', 
-      date: '2026-07-08T10:00:00Z', 
-      score: 88, 
-      status: 'pass', 
-      critical: 1,
-      sslStatus: 'valid',
-      cspStatus: 'configured',
-      hstsStatus: 'enabled',
-      spfStatus: 'configured',
-      portsStatus: 'secured'
-    },
-    { 
-      id: 5, 
-      domain: 'api-service.net', 
-      date: '2026-07-07T16:20:00Z', 
-      score: 71, 
-      status: 'warn', 
-      critical: 2,
-      sslStatus: 'valid',
-      cspStatus: 'partial',
-      hstsStatus: 'enabled',
-      spfStatus: 'configured',
-      portsStatus: 'warning'
-    },
-    { 
-      id: 6, 
-      domain: 'ecommerce-store.org', 
-      date: '2026-07-07T09:45:00Z', 
-      score: 55, 
-      status: 'warn', 
-      critical: 3,
-      sslStatus: 'expiring',
-      cspStatus: 'partial',
-      hstsStatus: 'weak',
-      spfStatus: 'missing',
-      portsStatus: 'warning'
-    },
-    { 
-      id: 7, 
-      domain: 'blog-platform.com', 
-      date: '2026-07-06T14:10:00Z', 
-      score: 82, 
-      status: 'pass', 
-      critical: 1,
-      sslStatus: 'valid',
-      cspStatus: 'configured',
-      hstsStatus: 'enabled',
-      spfStatus: 'configured',
-      portsStatus: 'secured'
-    },
-    { 
-      id: 8, 
-      domain: 'auth-service.io', 
-      date: '2026-07-06T11:30:00Z', 
-      score: 93, 
-      status: 'pass', 
-      critical: 0,
-      sslStatus: 'valid',
-      cspStatus: 'configured',
-      hstsStatus: 'enabled',
-      spfStatus: 'configured',
-      portsStatus: 'secured'
-    },
-  ];
+  const [scans, setScans] = useState([]);
+
+  useEffect(() => {
+    const history = historyService.getHistory();
+    setScans(history);
+  }, []); 
 
   const getScoreColor = (score) => {
     if (score >= 80) return 'score-green';
