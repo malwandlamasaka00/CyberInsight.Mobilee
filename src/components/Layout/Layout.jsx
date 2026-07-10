@@ -1,16 +1,33 @@
 // src/components/Layout/Layout.jsx
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Shield, X, BarChart3, Search, History, User, Menu } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  Shield, 
+  X, 
+  BarChart3, 
+  Search, 
+  History, 
+  User, 
+  Menu, 
+  LogOut,
+  FileText 
+} from 'lucide-react';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import './Layout.css';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    // Add your logout logic here
+    // For now, just navigate to login page
+    navigate('/login');
   };
 
   return (
@@ -59,6 +76,18 @@ const Layout = ({ children }) => {
           </div>
           
           <div className="nav-section">
+            <span className="nav-section-title">Reports</span>
+            <Link 
+              to="/reports" 
+              className={`nav-item cursor-target ${isActive('/reports') ? 'active' : ''}`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FileText size={20} />
+              <span>Reports</span>
+            </Link>
+          </div>
+          
+          <div className="nav-section">
             <span className="nav-section-title">Account</span>
             <Link 
               to="/profile" 
@@ -72,6 +101,15 @@ const Layout = ({ children }) => {
         </nav>
         
         <div className="sidebar-footer">
+          {/* Logout Button */}
+          <button 
+            className="sidebar-logout-btn cursor-target" 
+            onClick={handleLogout}
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
+          
           <div className="sidebar-status">
             <div className="status-indicator online" />
             <span>System Online</span>

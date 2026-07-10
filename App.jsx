@@ -1,13 +1,8 @@
 // App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './src/contexts/ThemeContext';  // Changed from context to contexts
-import Layout from './src/components/Layout/Layout';
-import Dashboard from './src/pages/dashboard/Dashboard';
-import History from './src/pages/history/History';
-import Profile from './src/pages/profile/Profile';
-import Scan from './src/pages/scan/Scan';
-import Reports from './src/pages/reports/Reports';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import AppRoutes from './src/routes/AppRoutes';
 import TargetCursor from './src/components/TargetCursor/TargetCursor';
 import './src/styles/globals.css';
 
@@ -23,34 +18,7 @@ const App = () => {
           cursorColor="#2563eb"
           cursorColorOnTarget="#3b82f6"
         />
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={
-            <Layout>
-              <Dashboard />
-            </Layout>
-          } />
-          <Route path="/scan" element={
-            <Layout>
-              <Scan />
-            </Layout>
-          } />
-          <Route path="/history" element={
-            <Layout>
-              <History />
-            </Layout>
-          } />
-          <Route path="/profile" element={
-            <Layout>
-              <Profile />
-            </Layout>
-          } />
-          <Route path="/reports" element={
-            <Layout>
-              <Reports />
-            </Layout>
-          } />
-        </Routes>
+        <AppRoutes />
       </Router>
     </ThemeProvider>
   );
