@@ -1,5 +1,5 @@
 // src/pages/dashboard/profile/Profile.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -20,13 +20,32 @@ import {
   X,
   ChevronRight,
   Lightbulb,
-  Info
+  Info,
+  Upload,
+  Trash2,
+  Eye
 } from 'lucide-react';
 import './Profile.css';
 
 const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedScan, setSelectedScan] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [cameraError, setCameraError] = useState(null);
+  const [stream, setStream] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const menuRef = useRef(null);
+
   const [profile, setProfile] = useState({
     name: user?.name || 'Demo User',
     email: user?.email || 'demo@cyberinsight.com',
@@ -51,6 +70,100 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
     { id: 5, url: 'securebank.com', date: 'Jul 3, 2026', score: 95, status: 'pass' },
   ];
 
+  // ===== TOAST NOTIFICATION - TOP RIGHT =====
+  const showToast = (message, type = 'success') => {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    const icons = {
+      success: '✅',
+      error: '❌',
+      info: 'ℹ️'
+    };
+    
+    toast.innerHTML = `
+      <span style="font-size: 20px;">${icons[type] || icons.success}</span>
+      <span>${message}</span>
+      <button class="toast-close" onclick="this.closest('.toast-notification').remove()">
+        ✕
+      </button>
+    `;
+    
+    document.body.appendChild(toast);
+
+    // Auto dismiss after 4 seconds
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        toast.style.animation = 'slideOutToast 0.3s ease forwards';
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }
+    }, 4000);
+  };
+
+  // ===== CUSTOM CONFIRM MODAL =====
+  const showConfirmModalDialog = (message, onConfirm) => {
+    setConfirmAction(() => onConfirm);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      confirmAction();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  // Load saved image on mount
+  useEffect(() => {
+    const savedImage = localStorage.getItem('profileImage');
+    if (savedImage) {
+      setProfileImage(savedImage);
+    }
+  }, []);
+
+  // Handle click outside menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Cleanup camera stream
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+    };
+  }, [stream]);
+
+  // Start camera when modal opens
+  useEffect(() => {
+    if (showCameraModal && videoRef.current && !capturedPhoto) {
+      startCamera();
+    }
+  }, [showCameraModal, capturedPhoto]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
@@ -58,7 +171,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
 
   const handleSave = () => {
     setIsEditing(false);
-    alert('✅ Profile updated successfully!');
+    localStorage.setItem('profileData', JSON.stringify(profile));
+    showToast(' Profile updated successfully!', 'success');
   };
 
   const handleCancel = () => {
@@ -71,21 +185,208 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
       joined: user?.memberSince || 'Jan 2026',
       lastActive: new Date().toLocaleString()
     });
+    showToast('📝 Changes cancelled', 'info');
   };
 
-  // Handle scan click - opens popup
+  // ===== PROFILE PICTURE HANDLERS =====
+
+  const getFirstLetter = () => {
+    if (!profile.name) return 'U';
+    return profile.name.charAt(0).toUpperCase();
+  };
+
+  const getProfileImageUrl = () => {
+    return profileImage || null;
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('❌ Please select an image file', 'error');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('❌ Image size should be less than 5MB', 'error');
+        return;
+      }
+
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result);
+        localStorage.setItem('profileImage', reader.result);
+        setIsUploading(false);
+        setShowMenu(false);
+        showToast(' Profile picture uploaded successfully!', 'success');
+        window.dispatchEvent(
+          new CustomEvent('profilePictureUpdated', {
+            detail: {
+              email: profile.email,
+              profilePicture: reader.result,
+            },
+          })
+        );
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const startCamera = async () => {
+    setCameraError(null);
+    
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Your browser does not support camera access');
+      }
+
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+      
+      setStream(mediaStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play().catch(err => {
+            console.error('Error playing video:', err);
+            setCameraError('Could not start video playback');
+          });
+        };
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setCameraError('Camera access denied. Please allow camera access in your browser settings.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setCameraError('No camera found on your device.');
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        setCameraError('Camera is already in use by another application.');
+      } else {
+        setCameraError('Unable to access camera. Please check your camera permissions.');
+      }
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      setCapturedPhoto(imageData);
+      
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
+    }
+  };
+
+  const retakePhoto = () => {
+    setCapturedPhoto(null);
+    setCameraError(null);
+    setTimeout(() => {
+      startCamera();
+    }, 100);
+  };
+
+  const savePhoto = () => {
+    if (capturedPhoto) {
+      setProfileImage(capturedPhoto);
+      localStorage.setItem('profileImage', capturedPhoto);
+      closeCamera();
+      showToast(' Profile picture saved successfully!', 'success');
+      window.dispatchEvent(
+        new CustomEvent('profilePictureUpdated', {
+          detail: {
+            email: profile.email,
+            profilePicture: capturedPhoto,
+          },
+        })
+      );
+    }
+  };
+
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => {
+        track.stop();
+      });
+      setStream(null);
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setShowCameraModal(false);
+    setCapturedPhoto(null);
+    setCameraError(null);
+  };
+
+  const handleTakePhoto = () => {
+    setShowCameraModal(true);
+    setCapturedPhoto(null);
+    setCameraError(null);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemovePhoto = () => {
+    showConfirmModalDialog(
+      'Are you sure you want to remove your profile picture?',
+      () => {
+        setProfileImage(null);
+        localStorage.removeItem('profileImage');
+        setShowMenu(false);
+        showToast('🗑️ Profile picture removed', 'info');
+        window.dispatchEvent(
+          new CustomEvent('profilePictureUpdated', {
+            detail: {
+              email: profile.email,
+              profilePicture: null,
+            },
+          })
+        );
+      }
+    );
+  };
+
+  // ===== SCAN HANDLERS =====
+
   const handleScanClick = (scan) => {
     setSelectedScan(scan);
     document.body.style.overflow = 'hidden';
   };
 
-  // Close popup
   const closePopup = () => {
     setSelectedScan(null);
     document.body.style.overflow = 'auto';
   };
 
-  // Calculate stats
+  // ===== STATS =====
+
   const totalScans = scans.length;
   const avgScore = totalScans > 0 ? Math.round(scans.reduce((acc, curr) => acc + curr.score, 0) / totalScans) : 0;
   const passedScans = scans.filter(s => s.status === 'pass').length;
@@ -116,7 +417,6 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
     }
   };
 
-  // Generate detailed findings for a scan
   const getScanDetails = (scan) => {
     const findings = [
       { 
@@ -188,13 +488,88 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
         {/* Left Column - Profile Card */}
         <div className="profile-card">
           <div className="profile-avatar-wrapper">
-            <div className="profile-avatar">
-              <User size={48} />
+            <div 
+              className={`profile-avatar ${getProfileImageUrl() ? 'has-image' : 'no-image'}`}
+              onClick={() => getProfileImageUrl() && setShowFullImage(true)}
+              style={{ cursor: getProfileImageUrl() ? 'pointer' : 'default' }}
+            >
+              {getProfileImageUrl() ? (
+                <img 
+                  src={getProfileImageUrl()} 
+                  alt={profile.name}
+                  className="profile-avatar-image"
+                />
+              ) : (
+                <span className="avatar-initial">{getFirstLetter()}</span>
+              )}
             </div>
-            <button className="profile-avatar-btn cursor-target">
-              <Camera size={16} />
-            </button>
+            
+            <div className="profile-avatar-actions" ref={menuRef}>
+              <button 
+                className="profile-avatar-btn edit-btn cursor-target"
+                onClick={() => setShowMenu(!showMenu)}
+              >
+                <PenSquare size={14} />
+                <span>Edit</span>
+              </button>
+              
+              {showMenu && (
+                <div className="edit-menu">
+                  {getProfileImageUrl() && (
+                    <button 
+                      className="menu-item cursor-target"
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowFullImage(true);
+                      }}
+                    >
+                      <Eye size={14} />
+                      <span>View photo</span>
+                    </button>
+                  )}
+                  <button 
+                    className="menu-item cursor-target"
+                    onClick={handleTakePhoto}
+                  >
+                    <Camera size={14} />
+                    <span>Take photo</span>
+                  </button>
+                  <button 
+                    className="menu-item cursor-target"
+                    onClick={handleUploadClick}
+                  >
+                    <Upload size={14} />
+                    <span>Upload photo</span>
+                  </button>
+                  {getProfileImageUrl() && (
+                    <button 
+                      className="menu-item remove cursor-target"
+                      onClick={handleRemovePhoto}
+                    >
+                      <Trash2 size={14} />
+                      <span>Remove photo</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+            />
+            
+            {isUploading && (
+              <div className="profile-uploading">
+                <div className="upload-spinner"></div>
+                <span>Uploading...</span>
+              </div>
+            )}
           </div>
+          
           <div className="profile-name">{profile.name}</div>
           <div className="profile-role">{profile.role}</div>
           <div className="profile-badge">
@@ -255,6 +630,23 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
             </div>
 
             <div className="profile-detail-item">
+              <label>Phone</label>
+              <div className="profile-detail-value">
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    name="phone"
+                    value={profile.phone} 
+                    className="profile-input cursor-target"
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  <span>{profile.phone}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="profile-detail-item">
               <label>Member Since</label>
               <div className="profile-detail-value">
                 <Calendar size={16} />
@@ -277,10 +669,12 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                 <Save size={16} />
                 Save Changes
               </button>
+              <button className="profile-cancel-btn cursor-target" onClick={handleCancel}>
+                <X size={16} />
+                Cancel
+              </button>
             </div>
           )}
-
-          
         </div>
       </div>
 
@@ -349,6 +743,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                 key={scan.id} 
                 className="profile-scan-item clickable"
                 onClick={() => handleScanClick(scan)}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="scan-item-left">
                   <span className="scan-status-icon">
@@ -383,11 +778,136 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
         </div>
       </div>
 
+      {/* ===== CUSTOM CONFIRM MODAL ===== */}
+      {showConfirmModal && (
+        <div className="confirm-overlay" onClick={handleCancelConfirm}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-header">
+              <div className="confirm-icon">
+                <AlertTriangle size={28} style={{ color: '#f5576c' }} />
+              </div>
+              <h3>Confirm Action</h3>
+            </div>
+            <div className="confirm-body">
+              <p>Are you sure you want to remove your profile picture?</p>
+              <p className="confirm-warning">This action cannot be undone.</p>
+            </div>
+            <div className="confirm-footer">
+              <button className="confirm-btn cancel" onClick={handleCancelConfirm}>
+                <X size={16} />
+                Cancel
+              </button>
+              <button className="confirm-btn danger" onClick={handleConfirm}>
+                <Trash2 size={16} />
+                Yes, Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== FULL IMAGE MODAL ===== */}
+      {showFullImage && getProfileImageUrl() && (
+        <div 
+          className="full-image-overlay"
+          onClick={() => setShowFullImage(false)}
+        >
+          <button
+            className="full-image-close cursor-target"
+            onClick={() => setShowFullImage(false)}
+          >
+            ✕
+          </button>
+          
+          <div 
+            className="full-image-container"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img 
+              src={getProfileImageUrl()} 
+              alt={profile.name}
+              className="full-image"
+            />
+            <div className="full-image-info">
+              <h3>{profile.name}</h3>
+              <p>{profile.email}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== CAMERA MODAL ===== */}
+      {showCameraModal && (
+        <div className="camera-modal-overlay" onClick={closeCamera}>
+          <div className="camera-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="camera-modal-header">
+              <h3>{capturedPhoto ? 'Preview Photo' : 'Take a Photo'}</h3>
+              <button className="camera-modal-close cursor-target" onClick={closeCamera}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="camera-modal-body">
+              {cameraError ? (
+                <div className="camera-error">
+                  <AlertTriangle size={32} />
+                  <p>{cameraError}</p>
+                  <button onClick={startCamera} className="retry-camera-btn cursor-target">
+                    Try Again
+                  </button>
+                </div>
+              ) : !capturedPhoto ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="camera-video"
+                  />
+                  <canvas ref={canvasRef} style={{ display: 'none' }} />
+                </>
+              ) : (
+                <div className="captured-preview">
+                  <img src={capturedPhoto} alt="Captured" className="captured-image" />
+                </div>
+              )}
+            </div>
+            
+            <div className="camera-modal-footer">
+              {!capturedPhoto ? (
+                <>
+                  <button className="camera-btn cancel cursor-target" onClick={closeCamera}>
+                    Cancel
+                  </button>
+                  <button 
+                    className="camera-btn capture cursor-target" 
+                    onClick={capturePhoto}
+                    disabled={cameraError}
+                  >
+                    <Camera size={16} /> Capture
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="camera-btn retake cursor-target" onClick={retakePhoto}>
+                    <X size={16} /> Retake
+                  </button>
+                  <button className="camera-btn save cursor-target" onClick={savePhoto}>
+                    <CheckCircle size={16} /> Save Photo
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ===== SCAN RESULTS POPUP ===== */}
       {selectedScan && (
         <div className="popup-overlay" onClick={closePopup}>
           <div className="popup-container scan-popup" onClick={(e) => e.stopPropagation()}>
-            <button className="popup-close" onClick={closePopup}>
+            <button className="popup-close cursor-target" onClick={closePopup}>
               <X size={20} />
             </button>
             
@@ -445,10 +965,10 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
             </div>
 
             <div className="popup-footer">
-              <button className="btn-primary" onClick={closePopup}>
+              <button className="btn-primary cursor-target" onClick={closePopup}>
                 <CheckCircle size={16} /> Got It
               </button>
-              <button className="btn-secondary" onClick={closePopup}>
+              <button className="btn-secondary cursor-target" onClick={closePopup}>
                 <X size={16} /> Close
               </button>
             </div>
