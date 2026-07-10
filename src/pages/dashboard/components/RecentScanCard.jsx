@@ -121,7 +121,7 @@ const RecentScanCard = ({ scans }) => {
               
               <div className="scan-actions" onClick={(e) => e.stopPropagation()}>
                 {getStatusBadge(scan)}
-                <button className="scan-view-btn cursor-target">
+                <button className="scan-view-btn cursor-target" title="View details">
                   <Eye size={14} />
                 </button>
               </div>
@@ -140,7 +140,9 @@ const RecentScanCard = ({ scans }) => {
 
             <div className="scan-modal-header">
               <div className="scan-modal-title-wrapper">
-                <Shield size={24} className="scan-modal-shield" />
+                <div className="scan-modal-icon-wrapper">
+                  <Shield size={24} />
+                </div>
                 <div>
                   <h2 className="scan-modal-title">Scan Details</h2>
                   <p className="scan-modal-domain">{selectedScan.domain}</p>
@@ -154,23 +156,23 @@ const RecentScanCard = ({ scans }) => {
 
             <div className="scan-modal-body">
               <div className="scan-modal-info-grid">
-                <div className="scan-modal-info-item cursor-target">
+                <div className="scan-modal-info-item">
                   <span className="scan-modal-info-label">Date</span>
                   <span className="scan-modal-info-value">
                     {new Date(selectedScan.date).toLocaleString()}
                   </span>
                 </div>
-                <div className="scan-modal-info-item cursor-target">
+                <div className="scan-modal-info-item">
                   <span className="scan-modal-info-label">Status</span>
                   <span className="scan-modal-info-value">
                     {getStatusText(selectedScan.score)}
                   </span>
                 </div>
-                <div className="scan-modal-info-item cursor-target">
+                <div className="scan-modal-info-item">
                   <span className="scan-modal-info-label">Critical Issues</span>
                   <span className="scan-modal-info-value">{selectedScan.criticalIssues}</span>
                 </div>
-                <div className="scan-modal-info-item cursor-target">
+                <div className="scan-modal-info-item">
                   <span className="scan-modal-info-label">Scan ID</span>
                   <span className="scan-modal-info-value">#SCN-{selectedScan.id.toString().padStart(4, '0')}</span>
                 </div>
@@ -179,22 +181,22 @@ const RecentScanCard = ({ scans }) => {
               <div className="scan-modal-checks">
                 <h4 className="scan-modal-checks-title">Security Checks</h4>
                 <div className="scan-modal-checks-grid">
-                  <div className="scan-modal-check-item cursor-target">
+                  <div className="scan-modal-check-item">
                     <Lock size={16} className="check-icon passed" />
                     <span>SSL/TLS</span>
                     <span className="check-status passed">Passed</span>
                   </div>
-                  <div className="scan-modal-check-item cursor-target">
+                  <div className="scan-modal-check-item">
                     <Radio size={16} className="check-icon passed" />
                     <span>Security Headers</span>
                     <span className="check-status passed">Passed</span>
                   </div>
-                  <div className="scan-modal-check-item cursor-target">
+                  <div className="scan-modal-check-item">
                     <Server size={16} className="check-icon warning" />
                     <span>DNS Configuration</span>
                     <span className="check-status warning">Warning</span>
                   </div>
-                  <div className="scan-modal-check-item cursor-target">
+                  <div className="scan-modal-check-item">
                     <Network size={16} className="check-icon passed" />
                     <span>Network Security</span>
                     <span className="check-status passed">Passed</span>
