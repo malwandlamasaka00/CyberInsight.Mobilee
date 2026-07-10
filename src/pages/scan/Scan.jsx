@@ -1,5 +1,6 @@
 // src/pages/scan/Scan.jsx
 import React, { useState } from 'react';
+import { scanService } from '../../services/scanService';
 import { 
   Globe, 
   Shield, 
@@ -112,66 +113,202 @@ const Scan = () => {
       ]
     };
   };
+const handleScan = async (e) => {
+  e.preventDefault();
 
-  const handleScan = async (e) => {
-    e.preventDefault();
-    if (!url.trim()) {
-      alert('Please enter a website URL');
-      return;
+  if (!url.trim()) {
+    alert("Please enter a website URL");
+    return;
+  }
+
+  try {
+    setIsScanning(true);
+    setScanProgress(10);
+    setScanResults(null);
+    setScanLogs([]);
+
+    addLog(`Starting security scan for ${url}`, "info");
+
+
+    const progressTimer = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev < 90) {
+          return prev + 10;
+        }
+        return prev;
+      });
+    }, 800);
+
+
+    const results = await scanService.scan(url);
+
+
+    clearInterval(progressTimer);
+
+
+    setScanProgress(100);
+
+    addLog(
+      "Scan completed successfully!",
+      "success"
+    );
+
+
+const score = Number(
+  results.overallScore ??
+  results.score ??
+  0
+);
+
+let calculatedStatus = "Critical";
+
+if (score >= 80) {
+  calculatedStatus = "Secure";
+} else if (score >= 60) {
+  calculatedStatus = "Needs Improvement";
+} else {
+  calculatedStatus = "Critical";
+}
+
+const formattedResults = {
+  ...results,
+  overallScore: score,
+  overallStatus: results.overallStatus || results.status || calculatedStatus,
+  checks: (results.checks || []).map(check => {
+    let status = String(check.status).toLowerCase();
+
+    if (
+      status === "pass" ||
+      status === "passed" ||
+      status === "success"
+    ) {
+      return {
+        ...check,
+        status: "Passed",
+        color: "#22c55e"
+      };
     }
 
-    try {
-      setIsScanning(true);
-      setScanProgress(20);
-      setScanResults(null);
-      setScanLogs([]);
-
-      addLog(`Starting security scan for ${url}...`, 'info');
-      addLog('Initializing security checks...', 'info');
-
-      setScanProgress(40);
-      addLog('Analyzing SSL/TLS certificates...', 'info');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setScanProgress(60);
-      addLog('Checking security headers...', 'info');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setScanProgress(80);
-      addLog('Scanning network configuration...', 'info');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setScanProgress(100);
-      addLog('Scan completed successfully!', 'success');
-
-      const results = generateScanResults(url);
-      setScanResults(results);
-      setIsScanning(false);
-
-    } catch (error) {
-      setIsScanning(false);
-      alert('Unable to scan this website. Please try again.');
-      console.error(error);
+    if (
+      status === "warning" ||
+      status === "warn"
+    ) {
+      return {
+        ...check,
+        status: "Warning",
+        color: "#eab308"
+      };
     }
-  };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Passed': return CheckCircle;
-      case 'Warning': return AlertTriangle;
-      case 'Failed': return AlertCircle;
-      default: return Info;
+    if (
+      status === "failed" ||
+      status === "fail" ||
+      status === "error"
+    ) {
+      return {
+        ...check,
+        status: "Failed",
+        color: "#ef4444"
+      };
     }
-  };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Passed': return '#22c55e';
-      case 'Warning': return '#eab308';
-      case 'Failed': return '#ef4444';
-      default: return '#64748b';
-    }
-  };
+    return {
+      ...check,
+      status: "Warning",
+      color: "#eab308"
+    };
+  })
+};
+
+
+    setScanResults(formattedResults);
+
+
+  } catch(error){
+
+    console.error(
+      "Scan error:",
+      error
+    );
+
+
+    addLog(
+      "Scan failed",
+      "error"
+    );
+
+
+    alert(
+      "Unable to scan website"
+    );
+
+
+  } finally {
+
+    setIsScanning(false);
+
+  }
+
+};
+
+ const getStatusIcon = (status)=>{
+
+ const value =
+ String(status).toLowerCase();
+
+
+ if(value==="passed")
+    return CheckCircle;
+
+
+ if(value==="warning")
+    return AlertTriangle;
+
+
+ if(value==="failed")
+    return AlertCircle;
+
+
+ return Info;
+
+};
+
+const getStatusColor = (status) => {
+
+  const value = String(status).toLowerCase();
+
+
+  if (
+    value === "excellent" ||
+    value === "secure"
+  ) {
+    return "#22c55e";
+  }
+
+
+  if (
+    value === "fair"
+  ) {
+    return "#eab308";
+  }
+
+
+  if (
+    value === "needs improvement"
+  ) {
+    return "#f97316";
+  }
+
+
+  if (
+    value === "critical"
+  ) {
+    return "#ef4444";
+  }
+
+
+  return "#64748b";
+};
 
   const getProgressColor = () => {
     if (scanProgress < 30) return '#eab308';
@@ -427,7 +564,7 @@ const Scan = () => {
                     strokeWidth="12" 
                     strokeLinecap="round"
                     strokeDasharray={502.65}
-                    strokeDashoffset={502.65 - (scanResults.overallScore / 100) * 502.65}
+                    strokeDashoffset={502.65 - (Number(scanResults.overallScore ||0) / 100) * 502.65}
                     className="scan-score-progress"
                   />
                 </svg>
@@ -459,14 +596,14 @@ const Scan = () => {
                   <CheckCircle size={18} className="stat-icon" style={{ color: '#22c55e' }} />
                   <div>
                     <span className="stat-label">Checks Passed</span>
-                    <span className="stat-value">{scanResults.checks.filter(c => c.status === 'Passed').length}/6</span>
+                    <span className="stat-value">{scanResults.checks.filter(c => String(c.status).toLowerCase() === 'passed').length}/6</span>
                   </div>
                 </div>
                 <div className="scan-score-stat cursor-target">
                   <AlertTriangle size={18} className="stat-icon" style={{ color: '#eab308' }} />
                   <div>
                     <span className="stat-label">Warnings</span>
-                    <span className="stat-value">{scanResults.checks.filter(c => c.status === 'Warning').length}</span>
+                    <span className="stat-value">{scanResults.checks.filter(c => String(c.status).toLowerCase() === 'warning').length}</span>
                   </div>
                 </div>
               </div>
