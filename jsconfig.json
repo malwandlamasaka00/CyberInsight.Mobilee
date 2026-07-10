@@ -23,6 +23,6 @@
 
   "include": [
     "src/**/*",
-    "App.jsx"
+    "src/utils/App.jsx"
   ]
 }
