@@ -17,7 +17,7 @@
 }
 
 /* ============================================
-   2. BLUE HEADER - LIKE PROFILE PAGE
+   2. BLUE HEADER
    ============================================ */
 .history-header-blue {
   background: linear-gradient(135deg, #0b2b4a 0%, #1a3d5e 50%, #2d7aff 100%);
@@ -103,6 +103,11 @@
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.export-btn-blue:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ============================================
@@ -252,7 +257,7 @@
 }
 
 /* ============================================
-   5. TABLE - FIXED ALIGNMENT
+   5. TABLE
    ============================================ */
 .history-table-wrapper {
   background: var(--bg-card, rgba(255, 255, 255, 0.05));
@@ -260,6 +265,7 @@
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
   overflow-x: auto;
   margin-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .history-table {
@@ -267,6 +273,7 @@
   border-collapse: collapse;
   font-size: 13px;
   table-layout: fixed;
+  min-width: 700px;
 }
 
 .history-table thead {
@@ -298,7 +305,7 @@
   border-bottom: none;
 }
 
-/* Column Widths - Fixed */
+/* Column Widths */
 .col-domain {
   width: 18% !important;
 }
@@ -487,6 +494,11 @@
 .download-btn:hover {
   background: rgba(67, 233, 123, 0.15);
   color: #43e97b;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ============================================
@@ -915,6 +927,11 @@
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
 }
 
+.btn-download:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ============================================
    19. STATUS BADGE IN POPUP
    ============================================ */
@@ -962,486 +979,24 @@
 }
 
 /* ============================================
-   22. RESPONSIVE - TABLET (768px - 1024px)
+   22. SPINNER
    ============================================ */
-@media (max-width: 1024px) {
-  .history-stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ============================================
-   23. RESPONSIVE - MOBILE (480px - 768px)
-   ============================================ */
-@media (max-width: 768px) {
-  .history-container {
-    padding: 16px;
-  }
-
-  .history-header-blue {
-    padding: 24px 20px;
-    border-radius: 12px;
-  }
-
-  .history-header-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .history-title-blue {
-    font-size: 22px;
-  }
-
-  .export-btn-blue {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .history-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .history-filters {
-    flex-direction: column;
-  }
-
-  .filter-group {
-    flex-direction: column;
-  }
-
-  .history-table {
-    table-layout: auto;
-    min-width: 550px;
-    font-size: 11px;
-  }
-
-  .history-table th,
-  .history-table td {
-    padding: 8px 10px;
-    height: 38px;
-    font-size: 11px;
-  }
-
-  .history-table th {
-    font-size: 9px;
-    padding: 8px 10px;
-  }
-
-  .col-domain,
-  .col-date,
-  .col-score,
-  .col-status,
-  .col-critical,
-  .col-actions {
-    width: auto !important;
-  }
-
-  .pagination {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .popup-container {
-    padding: 20px;
-    max-width: 95%;
-  }
-
-  .popup-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .popup-score-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .popup-finding-item {
-    flex-direction: column;
-  }
-
-  .popup-footer {
-    flex-direction: column-reverse;
-  }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-download {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .date-cell {
-    font-size: 10px;
-  }
-
-  .date-cell svg {
-    width: 11px;
-    height: 11px;
-  }
-
-  .status-badge {
-    font-size: 9px;
-    padding: 1px 6px;
-  }
-
-  .status-badge svg {
-    width: 9px;
-    height: 9px;
-  }
-
-  .score-value {
-    font-size: 10px !important;
-    padding: 1px 6px !important;
-  }
-
-  .action-btn {
-    width: 22px;
-    height: 22px;
-    padding: 3px;
-  }
-
-  .action-btn svg {
-    width: 11px;
-    height: 11px;
-  }
-
-  .critical-count {
-    font-size: 10px;
-    padding: 1px 6px;
-    min-width: 16px;
-  }
-
-  .no-critical {
-    font-size: 10px;
-  }
-
-  .domain-name {
-    font-size: 11px;
-  }
-}
-
-/* ============================================
-   24. RESPONSIVE - SMALL MOBILE (< 480px)
-   ============================================ */
-@media (max-width: 480px) {
-  .history-stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .history-title-blue {
-    font-size: 20px;
-  }
-
-  .history-subtitle-blue {
-    font-size: 13px;
-  }
-
-  .stat-value {
-    font-size: 18px;
-  }
-
-  .popup-container {
-    padding: 16px;
-  }
-
-  .popup-score-circle {
-    width: 60px;
-    height: 60px;
-    font-size: 22px;
-  }
-
-  .stat-card {
-    padding: 12px 14px;
-  }
-
-  .stat-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .stat-icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .history-table {
-    min-width: 420px;
-    font-size: 10px;
-  }
-
-  .history-table th,
-  .history-table td {
-    padding: 6px 8px;
-    height: 34px;
-    font-size: 10px;
-  }
-
-  .history-table th {
-    font-size: 8px;
-    padding: 6px 8px;
-  }
-
-  .actions-cell {
-    gap: 3px;
-  }
-
-  .action-btn {
-    width: 18px;
-    height: 18px;
-    padding: 2px;
-  }
-
-  .action-btn svg {
-    width: 9px;
-    height: 9px;
-  }
-
-  .critical-count {
-    font-size: 9px;
-    padding: 1px 4px;
-    min-width: 14px;
-  }
-
-  .no-critical {
-    font-size: 9px;
-  }
-
-  .date-cell {
-    font-size: 9px;
-    gap: 3px;
-  }
-
-  .date-cell svg {
-    width: 9px;
-    height: 9px;
-  }
-
-  .status-badge {
-    font-size: 8px;
-    padding: 1px 4px;
-    gap: 2px;
-  }
-
-  .status-badge svg {
-    width: 8px;
-    height: 8px;
-  }
-
-  .score-value {
-    font-size: 9px !important;
-    padding: 1px 4px !important;
-  }
-
-  .domain-name {
-    font-size: 10px;
-  }
-}
-
-/* ============================================
-   25. DARK THEME OVERRIDES
-   ============================================ */
-[data-theme="dark"] .history-container {
-  background: #0a0a1a;
-}
-
-[data-theme="dark"] .history-header-blue {
-  background: linear-gradient(135deg, #0b2b4a 0%, #1a3d5e 50%, #2d7aff 100%);
-}
-
-[data-theme="dark"] .stat-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .history-table-wrapper {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .history-table thead {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-[data-theme="dark"] .search-input {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .filter-select {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .popup-container {
-  background: #1a1a2e;
-}
-
-[data-theme="dark"] .page-btn {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* ============================================
-   26. LIGHT THEME OVERRIDES
-   ============================================ */
-[data-theme="light"] .history-container {
-  background: #f8fafc;
-}
-
-[data-theme="light"] .history-header-blue {
-  background: linear-gradient(135deg, #0b2b4a 0%, #1a3d5e 50%, #2d7aff 100%);
-}
-
-[data-theme="light"] .stat-card {
-  background: #ffffff;
-  border-color: #e2e8f0;
-}
-
-[data-theme="light"] .stat-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="light"] .stat-label {
-  color: #64748b;
-}
-
-[data-theme="light"] .history-table-wrapper {
-  background: #ffffff;
-  border-color: #e2e8f0;
-}
-
-[data-theme="light"] .history-table thead {
-  background: #f8fafc;
-}
-
-[data-theme="light"] .history-table th {
-  color: #64748b;
-  border-bottom-color: #e2e8f0;
-}
-
-[data-theme="light"] .history-table td {
-  border-bottom-color: #f1f5f9;
-}
-
-[data-theme="light"] .scan-row:hover {
-  background: #f8fafc;
-}
-
-[data-theme="light"] .search-input {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #0f172a;
-}
-
-[data-theme="light"] .search-input::placeholder {
-  color: #94a3b8;
-}
-
-[data-theme="light"] .filter-select {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #0f172a;
-}
-
-[data-theme="light"] .filter-select option {
-  background: #ffffff;
-  color: #0f172a;
-}
-
-[data-theme="light"] .popup-container {
-  background: #ffffff;
-  border-color: #e2e8f0;
-}
-
-[data-theme="light"] .popup-title h2 {
-  color: #0f172a;
-}
-
-[data-theme="light"] .popup-date {
-  color: #64748b;
-}
-
-[data-theme="light"] .popup-id {
-  color: #64748b;
-}
-
-[data-theme="light"] .popup-score-info h3 {
-  color: #0f172a;
-}
-
-[data-theme="light"] .popup-score-info p {
-  color: #475569;
-}
-
-[data-theme="light"] .popup-findings h4 {
-  color: #0f172a;
-}
-
-[data-theme="light"] .finding-label {
-  color: #0f172a;
-}
-
-[data-theme="light"] .finding-detail {
-  color: #475569;
-}
-
-[data-theme="light"] .finding-impact {
-  color: #64748b;
-}
-
-[data-theme="light"] .finding-recommendation {
-  color: #0f172a;
-}
-
-[data-theme="light"] .popup-close {
-  color: #64748b;
-}
-
-[data-theme="light"] .page-btn {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #0f172a;
-}
-
-[data-theme="light"] .page-btn:hover:not(:disabled) {
-  background: #f8fafc;
-}
-
-[data-theme="light"] .page-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-[data-theme="light"] .page-dots {
-  color: #94a3b8;
-}
-
-[data-theme="light"] .action-btn {
-  background: #f8fafc;
-  color: #94a3b8;
-}
-
-[data-theme="light"] .view-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-}
-
-[data-theme="light"] .download-btn:hover {
-  background: rgba(67, 233, 123, 0.1);
-  color: #43e97b;
-}
-
-[data-theme="light"] .domain-name {
-  color: #0f172a;
-}
-
-[data-theme="light"] .date-cell {
-  color: #64748b;
-}
-
-[data-theme="light"] .no-critical {
-  color: #16a34a;
-}
-
-/* ============================================
-   TOAST NOTIFICATION - TOP RIGHT
+   23. TOAST NOTIFICATION
    ============================================ */
 @keyframes slideInToast {
   from { 
@@ -1501,7 +1056,6 @@
   color: white;
 }
 
-/* Toast types with colored borders */
 .toast-success {
   border-left: 4px solid #43e97b;
 }
@@ -1515,26 +1069,762 @@
 }
 
 /* ============================================
-   SPINNER ANIMATION
+   24. RESPONSIVE - TABLET (768px - 1024px)
    ============================================ */
-.spinner-small {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+@media (max-width: 1024px) {
+  .history-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* ============================================
+   25. RESPONSIVE - MOBILE (480px - 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  .history-container {
+    padding: 16px;
+  }
+
+  .history-header-blue {
+    padding: 20px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .history-header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .history-title-blue {
+    font-size: 20px;
+  }
+
+  .history-title-blue svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .history-subtitle-blue {
+    font-size: 12px;
+  }
+
+  .export-btn-blue {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .history-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .history-filters {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .search-wrapper {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .search-input {
+    padding: 10px 36px;
+    font-size: 14px;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 10px 32px 10px 14px;
+    font-size: 14px;
+  }
+
+  .history-table-wrapper {
+    border-radius: 10px;
+  }
+
+  .history-table {
+    min-width: 600px;
+    font-size: 11px;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 8px 10px;
+    height: 38px;
+    font-size: 11px;
+  }
+
+  .history-table th {
+    font-size: 9px;
+    padding: 8px 10px;
+  }
+
+  .col-domain,
+  .col-date,
+  .col-score,
+  .col-status,
+  .col-critical,
+  .col-actions {
+    width: auto !important;
+    min-width: auto !important;
+  }
+
+  .domain-name {
+    font-size: 11px;
+  }
+
+  .date-cell {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .date-cell svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .score-value {
+    font-size: 10px !important;
+    padding: 1px 6px !important;
+  }
+
+  .score-value svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .status-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+
+  .status-badge svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .critical-count {
+    font-size: 10px;
+    padding: 1px 6px;
+    min-width: 16px;
+  }
+
+  .no-critical {
+    font-size: 10px;
+  }
+
+  .actions-cell {
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 24px;
+    height: 24px;
+    padding: 3px;
+  }
+
+  .action-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .page-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .page-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Popup Mobile */
+  .popup-overlay {
+    padding: 10px;
+  }
+
+  .popup-container {
+    padding: 20px;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 16px;
+    max-height: 85vh;
+  }
+
+  .popup-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .popup-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .popup-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .popup-title h2 {
+    font-size: 17px;
+  }
+
+  .popup-date {
+    font-size: 12px;
+  }
+
+  .popup-id {
+    font-size: 11px;
+  }
+
+  .popup-score-section {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .popup-score-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+  }
+
+  .popup-score-info h3 {
+    font-size: 16px;
+  }
+
+  .popup-score-info p {
+    font-size: 13px;
+  }
+
+  .popup-stats-mini {
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .popup-findings h4 {
+    font-size: 14px;
+  }
+
+  .popup-finding-item {
+    flex-direction: column;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .finding-icon {
+    align-self: flex-start;
+  }
+
+  .finding-label {
+    font-size: 13px;
+  }
+
+  .finding-detail {
+    font-size: 12px;
+  }
+
+  .finding-impact {
+    font-size: 11px;
+  }
+
+  .finding-recommendation {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .finding-recommendation svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .finding-severity {
+    align-self: flex-start;
+    font-size: 10px;
+    padding: 1px 8px;
+  }
+
+  .popup-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-download {
+    width: 100%;
+    justify-content: center;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .popup-close {
+    padding: 6px;
+  }
+
+  .popup-close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Toast Mobile */
+  .toast-notification {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+    min-width: auto;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .toast-notification span:first-child {
+    font-size: 18px;
+  }
+
+  .toast-notification .toast-close {
+    font-size: 16px;
+  }
 }
 
-/* Disable button state */
-.export-btn-blue:disabled,
-.action-btn:disabled,
-.btn-download:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* ============================================
+   26. RESPONSIVE - SMALL MOBILE (< 480px)
+   ============================================ */
+@media (max-width: 480px) {
+  .history-container {
+    padding: 10px;
+  }
+
+  .history-header-blue {
+    padding: 14px 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+
+  .history-title-blue {
+    font-size: 16px;
+  }
+
+  .history-title-blue svg {
+    width: 16px;
+    height: 16px;
+    gap: 8px;
+  }
+
+  .history-subtitle-blue {
+    font-size: 11px;
+  }
+
+  .export-btn-blue {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .export-btn-blue svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .history-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .stat-card {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .stat-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .stat-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .stat-value {
+    font-size: 14px;
+  }
+
+  .stat-label {
+    font-size: 8px;
+  }
+
+  .search-input {
+    padding: 8px 32px;
+    font-size: 13px;
+  }
+
+  .search-icon {
+    width: 14px;
+    height: 14px;
+    left: 10px;
+  }
+
+  .filter-select {
+    padding: 8px 28px 8px 10px;
+    font-size: 13px;
+  }
+
+  .history-table {
+    min-width: 420px;
+    font-size: 10px;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 4px 6px;
+    height: 30px;
+    font-size: 9px;
+  }
+
+  .history-table th {
+    font-size: 7px;
+    padding: 4px 6px;
+  }
+
+  .domain-name {
+    font-size: 9px;
+  }
+
+  .date-cell {
+    font-size: 8px;
+    gap: 2px;
+  }
+
+  .date-cell svg {
+    width: 8px;
+    height: 8px;
+  }
+
+  .score-value {
+    font-size: 8px !important;
+    padding: 1px 4px !important;
+  }
+
+  .score-value svg {
+    width: 8px;
+    height: 8px;
+  }
+
+  .status-badge {
+    font-size: 7px;
+    padding: 1px 4px;
+    gap: 2px;
+  }
+
+  .status-badge svg {
+    width: 7px;
+    height: 7px;
+  }
+
+  .critical-count {
+    font-size: 8px;
+    padding: 1px 4px;
+    min-width: 12px;
+  }
+
+  .no-critical {
+    font-size: 8px;
+  }
+
+  .actions-cell {
+    gap: 2px;
+  }
+
+  .action-btn {
+    width: 16px;
+    height: 16px;
+    padding: 2px;
+  }
+
+  .action-btn svg {
+    width: 8px;
+    height: 8px;
+  }
+
+  .pagination-info {
+    font-size: 11px;
+  }
+
+  .page-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .page-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .page-dots {
+    font-size: 10px;
+  }
+
+  /* Empty state small mobile */
+  .empty-state-content {
+    padding: 14px;
+  }
+
+  .empty-state-content .empty-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .empty-state-content h3 {
+    font-size: 14px;
+  }
+
+  .empty-state-content p {
+    font-size: 12px;
+  }
+
+  /* Popup Small Mobile */
+  .popup-container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .popup-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .popup-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .popup-title h2 {
+    font-size: 14px;
+  }
+
+  .popup-date {
+    font-size: 10px;
+  }
+
+  .popup-id {
+    font-size: 9px;
+  }
+
+  .popup-score-circle {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+    border-width: 3px;
+  }
+
+  .popup-score-info h3 {
+    font-size: 13px;
+  }
+
+  .popup-score-info p {
+    font-size: 11px;
+  }
+
+  .popup-stats-mini {
+    font-size: 10px;
+  }
+
+  .popup-stats-mini svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .popup-findings h4 {
+    font-size: 12px;
+  }
+
+  .popup-finding-item {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .finding-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .finding-label {
+    font-size: 11px;
+  }
+
+  .finding-detail {
+    font-size: 10px;
+  }
+
+  .finding-impact {
+    font-size: 9px;
+  }
+
+  .finding-recommendation {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
+
+  .finding-recommendation svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .finding-severity {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-download {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .btn-primary svg,
+  .btn-secondary svg,
+  .btn-download svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .popup-close {
+    padding: 4px;
+  }
+
+  .popup-close svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Toast Small Mobile */
+  .toast-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    border-radius: 10px;
+    min-width: auto;
+  }
+
+  .toast-notification span:first-child {
+    font-size: 16px;
+  }
+
+  .toast-notification .toast-close {
+    font-size: 14px;
+    padding: 0 2px;
+  }
+
+  .spinner-small {
+    width: 12px;
+    height: 12px;
+    border-width: 1.5px;
+  }
+}
+
+/* ============================================
+   27. RESPONSIVE - LANDSCAPE PHONE
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .popup-container {
+    max-height: 80vh;
+    padding: 14px;
+  }
+
+  .popup-score-section {
+    padding: 10px;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .popup-score-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+  }
+
+  .popup-finding-item {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .popup-header {
+    flex-direction: row;
+    text-align: left;
+    gap: 12px;
+  }
+
+  .popup-footer {
+    flex-direction: row;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-download {
+    width: auto;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
 }
