@@ -1,0 +1,181 @@
+/* Login Page Container */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(
+        135deg,
+        #0f172a,
+        #1e293b,
+        #334155
+    );
+    padding: 20px;
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* Login Card */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+/* Heading */
+.login-card h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 32px;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* Subtitle */
+.subtitle {
+    text-align: center;
+    margin: 12px 0 30px;
+    color: #64748b;
+    font-size: 15px;
+}
+
+/* Form Labels */
+form label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 18px;
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Inputs */
+form input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 15px;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+form input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Password Input Area */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    padding-right: 75px;
+}
+
+/* Show/Hide Button */
+.password-wrapper button {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.password-wrapper button:hover {
+    color: #1d4ed8;
+}
+
+/* Error Message */
+.error {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Login Button */
+.login-button {
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.15s ease;
+}
+
+.login-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.login-button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Register Section */
+.register-link {
+    text-align: center;
+    margin-top: 25px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.register-link p {
+    margin: 0 0 8px;
+}
+
+.register-link a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+
+    .login-card h1 {
+        font-size: 26px;
+    }
+}
