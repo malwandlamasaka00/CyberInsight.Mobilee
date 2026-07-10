@@ -1,6 +1,8 @@
+// src/pages/auth/Login.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import loginImage from "../../components/images/cyberiInsight.jpg";
 import "./Login.css";
 
 function Login() {
@@ -39,54 +41,68 @@ function Login() {
 
     return (
         <div className="login-page">
-            <div className="login-card">
-                <h1>Welcome Back</h1>
-                <p className="subtitle">
-                    Sign in to continue securing your websites
-                </p>
+            <div className="login-container">
+                {/* Left Panel - Image Cover */}
+                <div className="login-left-panel">
+                    <div className="left-panel-image" style={{ backgroundImage: `url(${loginImage})` }}></div>
+                </div>
 
-                <form onSubmit={handleLogin}>
-                    <label>Email Address</label>
-                    <input
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-
-                    <label>Password</label>
-                    <div className="password-wrapper">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                        >
-                            {showPassword ? "Hide" : "Show"}
-                        </button>
-                    </div>
-
-                    {error && (
-                        <p className="error">
-                            {error}
+                {/* Right Panel - Login Form */}
+                <div className="login-right-panel">
+                    <div className="login-card">
+                        <div className="login-logo">
+                            <span className="login-logo-icon"></span>
+                            <h1>Welcome Back</h1>
+                        </div>
+                        <p className="subtitle">
+                            Sign in to continue securing your websites
                         </p>
-                    )}
 
-                    <button
-                        className="login-button"
-                        disabled={loading}
-                    >
-                        {loading ? "Signing in..." : "Sign In"}
-                    </button>
-                </form>
+                        <form onSubmit={handleLogin}>
+                            <label>Email Address</label>
+                            <input
+                                type="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
 
-                <div className="register-link">
-                    <p>Don't have an account?</p>
-                    <Link to="/register">Create Account</Link>
+                            <label>Password</label>
+                            <div className="password-wrapper">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="toggle-btn"
+                                >
+                                    {showPassword ? "Hide" : "Show"}
+                                </button>
+                            </div>
+
+                            {error && (
+                                <p className="error">
+                                    {error}
+                                </p>
+                            )}
+
+                            <button
+                                className="login-button"
+                                disabled={loading}
+                            >
+                                {loading ? "Signing in..." : "Sign In"}
+                            </button>
+                        </form>
+
+                        <div className="register-link">
+                            <p>Don't have an account?</p>
+                            <Link to="/register">Create Account</Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
