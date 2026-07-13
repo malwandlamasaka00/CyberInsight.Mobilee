@@ -34,7 +34,8 @@ import {
   Wifi,
   Sparkles,
   BarChart3,
-  PieChart
+  PieChart,
+  X
 } from 'lucide-react';
 import ElectricBorder from '../../components/ElectricBorder/ElectricBorder';
 import './Scan.css';
@@ -45,14 +46,86 @@ const Scan = () => {
   const [scanResults, setScanResults] = useState(null);
   const [scanProgress, setScanProgress] = useState(0);
   const [scanLogs, setScanLogs] = useState([]);
+  const [selectedCheck, setSelectedCheck] = useState(null);
+  const [showCheckModal, setShowCheckModal] = useState(false);
   const [quickUrls] = useState([
     { label: 'example.com', url: 'https://example.com' },
     { label: 'test-site.org', url: 'https://test-site.org' },
     { label: 'secure-app.io', url: 'https://secure-app.io' }
   ]);
 
+  // Security check descriptions with examples and importance
+  const securityCheckInfo = {
+    'SSL/TLS': {
+      description: 'Analyzes the website\'s SSL/TLS certificate to ensure secure encrypted communication between the browser and server.',
+      example: 'Valid certificate from Let\'s Encrypt, Cloudflare, or DigiCert with proper expiration date and strong encryption (TLS 1.2+).',
+      importance: 'Without proper SSL/TLS, all data transmitted between users and your website (passwords, credit cards, personal info) is sent in plain text and can be intercepted by attackers.',
+      icon: Shield,
+      color: '#22c55e',
+      riskLevel: 'Critical',
+      commonIssues: ['Expired certificate', 'Self-signed certificate', 'Weak encryption protocol', 'Certificate chain incomplete']
+    },
+    'Security Headers': {
+      description: 'Checks for essential HTTP security headers that protect against common web vulnerabilities like XSS, clickjacking, and content injection.',
+      example: 'Content-Security-Policy: default-src \'self\'; Strict-Transport-Security: max-age=31536000; X-Frame-Options: DENY; X-Content-Type-Options: nosniff.',
+      importance: 'Missing security headers leave your website vulnerable to cross-site scripting (XSS), clickjacking attacks, and MIME-type confusion attacks that can compromise user data.',
+      icon: Radio,
+      color: '#3b82f6',
+      riskLevel: 'High',
+      commonIssues: ['Missing CSP header', 'Missing HSTS header', 'Missing X-Frame-Options', 'Missing X-Content-Type-Options']
+    },
+    'DNS Configuration': {
+      description: 'Examines DNS records to verify proper configuration and identify potential misconfigurations that could lead to security issues.',
+      example: 'Proper A records pointing to correct IP, MX records for email, TXT records for domain verification, and properly configured Name Servers.',
+      importance: 'DNS misconfigurations can lead to domain hijacking, email spoofing, and allow attackers to redirect your users to malicious websites.',
+      icon: Server,
+      color: '#8b5cf6',
+      riskLevel: 'High',
+      commonIssues: ['Missing SPF records', 'Missing DKIM records', 'Incorrect MX records', 'DNSSEC not enabled']
+    },
+    'Network Security': {
+      description: 'Scans for open ports and exposed services that could provide attack vectors for unauthorized access.',
+      example: 'Port 443 (HTTPS) open, Port 22 (SSH) properly secured, unnecessary ports closed, services properly configured and up-to-date.',
+      importance: 'Exposed services and open ports give attackers entry points to exploit vulnerabilities, potentially leading to data breaches and system compromise.',
+      icon: Wifi,
+      color: '#eab308',
+      riskLevel: 'Critical',
+      commonIssues: ['Unnecessary open ports', 'Exposed administrative interfaces', 'Outdated services', 'Missing firewall rules']
+    },
+    'WHOIS Information': {
+      description: 'Retrieves domain registration details to verify ownership and identify potential privacy or security concerns.',
+      example: 'Registrar: GoDaddy, Registered: 2020-01-01, Expires: 2025-01-01, Name Servers: ns1.example.com, ns2.example.com.',
+      importance: 'Incomplete or hidden WHOIS information can indicate suspicious domains, while expired or improperly registered domains risk being taken over by attackers.',
+      icon: Globe,
+      color: '#ec4899',
+      riskLevel: 'Medium',
+      commonIssues: ['Domain expiring soon', 'Privacy protection enabled', 'Registrar information hidden', 'Name servers misconfigured']
+    },
+    'Technologies': {
+      description: 'Identifies the technologies, frameworks, and libraries used by the website to detect outdated or vulnerable components.',
+      example: 'React 18.2.0, Node.js 16.14.0, WordPress 6.2, Apache 2.4.54, Nginx 1.22.0, jQuery 3.6.0.',
+      importance: 'Outdated technologies and libraries contain known vulnerabilities that attackers actively exploit. Regular detection helps maintain a secure tech stack.',
+      icon: Code,
+      color: '#ef4444',
+      riskLevel: 'High',
+      commonIssues: ['Outdated versions detected', 'Vulnerable libraries', 'End-of-life technologies', 'Missing security patches']
+    }
+  };
+
   const addLog = (message, type = 'info') => {
     setScanLogs(prev => [...prev, { message, type, time: new Date().toLocaleTimeString() }]);
+  };
+
+  const handleCardClick = (check) => {
+    setSelectedCheck(check);
+    setShowCheckModal(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModal = () => {
+    setShowCheckModal(false);
+    setSelectedCheck(null);
+    document.body.style.overflow = 'auto';
   };
 
   const generateScanResults = (domain) => {
@@ -114,255 +187,188 @@ const Scan = () => {
       ]
     };
   };
-const handleScan = async (e) => {
-  e.preventDefault();
 
-  if (!url.trim()) {
-    alert("Please enter a website URL");
-    return;
-  }
+  const handleScan = async (e) => {
+    e.preventDefault();
 
-  try {
-    setIsScanning(true);
-    setScanProgress(10);
-    setScanResults(null);
-    setScanLogs([]);
+    if (!url.trim()) {
+      alert("Please enter a website URL");
+      return;
+    }
 
-    addLog(`Starting security scan for ${url}`, "info");
+    try {
+      setIsScanning(true);
+      setScanProgress(10);
+      setScanResults(null);
+      setScanLogs([]);
 
+      addLog(`Starting security scan for ${url}`, "info");
 
-    const progressTimer = setInterval(() => {
-      setScanProgress(prev => {
-        if (prev < 90) {
-          return prev + 10;
-        }
-        return prev;
+      const progressTimer = setInterval(() => {
+        setScanProgress(prev => {
+          if (prev < 90) {
+            return prev + 10;
+          }
+          return prev;
+        });
+      }, 800);
+
+      const results = await scanService.scan(url);
+
+      clearInterval(progressTimer);
+
+      setScanProgress(100);
+
+      addLog("Scan completed successfully!", "success");
+
+      const score = Number(
+        results.overallScore ??
+        results.score ??
+        0
+      );
+
+      let calculatedStatus = "Critical";
+
+      if (score >= 80) {
+        calculatedStatus = "Secure";
+      } else if (score >= 50) {
+        calculatedStatus = "Needs Improvement";
+      } else {
+        calculatedStatus = "Critical";
+      }
+
+      const formattedResults = {
+        ...results,
+        overallScore: score,
+        overallStatus: results.overallStatus || results.status || calculatedStatus,
+        checks: (results.checks || []).map(check => {
+          let status = String(check.status).toLowerCase();
+
+          if (
+            status === "pass" ||
+            status === "passed" ||
+            status === "success"
+          ) {
+            return {
+              ...check,
+              status: "Passed",
+              color: "#22c55e"
+            };
+          }
+
+          if (
+            status === "warning" ||
+            status === "warn"
+          ) {
+            return {
+              ...check,
+              status: "Warning",
+              color: "#eab308"
+            };
+          }
+
+          if (
+            status === "failed" ||
+            status === "fail" ||
+            status === "error"
+          ) {
+            return {
+              ...check,
+              status: "Failed",
+              color: "#ef4444"
+            };
+          }
+
+          return {
+            ...check,
+            status: "Warning",
+            color: "#eab308"
+          };
+        })
+      };
+
+      setScanResults(formattedResults);
+      
+      historyService.saveScan({
+        id: Date.now(),
+        domain: url.replace(/^https?:\/\//, ""),
+        date: new Date().toISOString(),
+        score: formattedResults.overallScore,
+        status:
+          formattedResults.overallScore >= 80
+            ? "Secure"
+            : formattedResults.overallScore >= 50
+            ? "Needs Improvement"
+            : "Critical",
+        checks: formattedResults.checks,
+        critical: formattedResults.checks.filter(c => c.status === "Failed").length,
+        sslStatus:
+          formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Passed"
+            ? "valid"
+            : formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Warning"
+            ? "expiring"
+            : "expired",
+        cspStatus:
+          formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
+            ? "configured"
+            : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
+            ? "partial"
+            : "missing",
+        hstsStatus:
+          formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
+            ? "enabled"
+            : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
+            ? "weak"
+            : "missing",
+        spfStatus:
+          formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Passed"
+            ? "configured"
+            : formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Warning"
+            ? "partial"
+            : "missing",
+        portsStatus:
+          formattedResults.checks.find(c => c.name === "Network Security")?.status === "Passed"
+            ? "secured"
+            : formattedResults.checks.find(c => c.name === "Network Security")?.status === "Warning"
+            ? "warning"
+            : "exposed"
       });
-    }, 800);
 
-
-    const results = await scanService.scan(url);
-
-
-    clearInterval(progressTimer);
-
-
-    setScanProgress(100);
-
-    addLog(
-      "Scan completed successfully!",
-      "success"
-    );
-
-
-const score = Number(
-  results.overallScore ??
-  results.score ??
-  0
-);
-
-let calculatedStatus = "Critical";
-
-if (score >= 80) {
-  calculatedStatus = "Secure";
-} else if (score >= 50) {
-  calculatedStatus = "Needs Improvement";
-} else {
-  calculatedStatus = "Critical";
-}
-
-const formattedResults = {
-  ...results,
-  overallScore: score,
-  overallStatus: results.overallStatus || results.status || calculatedStatus,
-  checks: (results.checks || []).map(check => {
-    let status = String(check.status).toLowerCase();
-
-    if (
-      status === "pass" ||
-      status === "passed" ||
-      status === "success"
-    ) {
-      return {
-        ...check,
-        status: "Passed",
-        color: "#22c55e"
-      };
+    } catch (error) {
+      console.error("Scan error:", error);
+      addLog("Scan failed", "error");
+      alert("Unable to scan website");
+    } finally {
+      setIsScanning(false);
     }
+  };
 
-    if (
-      status === "warning" ||
-      status === "warn"
-    ) {
-      return {
-        ...check,
-        status: "Warning",
-        color: "#eab308"
-      };
+  const getStatusIcon = (status) => {
+    const value = String(status).toLowerCase();
+
+    if (value === "passed") return CheckCircle;
+    if (value === "warning") return AlertTriangle;
+    if (value === "failed") return AlertCircle;
+    return Info;
+  };
+
+  const getStatusColor = (status) => {
+    const value = String(status).toLowerCase();
+
+    if (value === "excellent" || value === "secure") {
+      return "#22c55e";
     }
-
-    if (
-      status === "failed" ||
-      status === "fail" ||
-      status === "error"
-    ) {
-      return {
-        ...check,
-        status: "Failed",
-        color: "#ef4444"
-      };
+    if (value === "fair") {
+      return "#eab308";
     }
-
-    return {
-      ...check,
-      status: "Warning",
-      color: "#eab308"
-    };
-  })
-};
-
-
-    setScanResults(formattedResults);
-historyService.saveScan({
-  id: Date.now(),
-  domain: url.replace(/^https?:\/\//, ""),
-  date: new Date().toISOString(),
-
-  score: formattedResults.overallScore,
-
-  status:
-    formattedResults.overallScore >= 80
-      ? "Secure"
-      : formattedResults.overallScore >= 50
-      ? "Needs Improvement"
-      : "Critical",
-
-  checks: formattedResults.checks,
-
-  critical: formattedResults.checks.filter(c => c.status === "Failed").length,
-
-  sslStatus:
-    formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Passed"
-      ? "valid"
-      : formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Warning"
-      ? "expiring"
-      : "expired",
-
-  cspStatus:
-    formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
-      ? "configured"
-      : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
-      ? "partial"
-      : "missing",
-
-  hstsStatus:
-    formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
-      ? "enabled"
-      : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
-      ? "weak"
-      : "missing",
-
-  spfStatus:
-    formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Passed"
-      ? "configured"
-      : formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Warning"
-      ? "partial"
-      : "missing",
-
-  portsStatus:
-    formattedResults.checks.find(c => c.name === "Network Security")?.status === "Passed"
-      ? "secured"
-      : formattedResults.checks.find(c => c.name === "Network Security")?.status === "Warning"
-      ? "warning"
-      : "exposed"
-});
-
-
-  } catch(error){
-
-    console.error(
-      "Scan error:",
-      error
-    );
-
-
-    addLog(
-      "Scan failed",
-      "error"
-    );
-
-
-    alert(
-      "Unable to scan website"
-    );
-
-
-  } finally {
-
-    setIsScanning(false);
-
-  }
-
-};
-
- const getStatusIcon = (status)=>{
-
- const value =
- String(status).toLowerCase();
-
-
- if(value==="passed")
-    return CheckCircle;
-
-
- if(value==="warning")
-    return AlertTriangle;
-
-
- if(value==="failed")
-    return AlertCircle;
-
-
- return Info;
-
-};
-
-const getStatusColor = (status) => {
-
-  const value = String(status).toLowerCase();
-
-
-  if (
-    value === "excellent" ||
-    value === "secure"
-  ) {
-    return "#22c55e";
-  }
-
-
-  if (
-    value === "fair"
-  ) {
-    return "#eab308";
-  }
-
-
-  if (
-    value === "needs improvement"
-  ) {
-    return "#f97316";
-  }
-
-
-  if (
-    value === "critical"
-  ) {
-    return "#ef4444";
-  }
-
-
-  return "#64748b";
-};
+    if (value === "needs improvement") {
+      return "#f97316";
+    }
+    if (value === "critical") {
+      return "#ef4444";
+    }
+    return "#64748b";
+  };
 
   const getProgressColor = () => {
     if (scanProgress < 30) return '#eab308';
@@ -542,53 +548,26 @@ const getStatusColor = (status) => {
           <span className="scan-checks-count">6 comprehensive checks</span>
         </div>
         <div className="scan-types">
-          <div className="scan-type-item cursor-target" style={{ borderTopColor: '#22c55e' }}>
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}>
-              <Shield size={24} style={{ color: '#22c55e' }} />
-            </div>
-            <span className="scan-type-text">SSL/TLS</span>
-            <span className="scan-type-desc">Certificate validation</span>
-          </div>
-
-          <div className="scan-type-item cursor-target" style={{ borderTopColor: '#3b82f6' }}>
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-              <Radio size={24} style={{ color: '#3b82f6' }} />
-            </div>
-            <span className="scan-type-text">Headers</span>
-            <span className="scan-type-desc">Security headers</span>
-          </div>
-
-          <div className="scan-type-item cursor-target" style={{ borderTopColor: '#8b5cf6' }}>
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}>
-              <Server size={24} style={{ color: '#8b5cf6' }} />
-            </div>
-            <span className="scan-type-text">DNS</span>
-            <span className="scan-type-desc">DNS configuration</span>
-          </div>
-
-          <div className="scan-type-item cursor-target" style={{ borderTopColor: '#eab308' }}>
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)' }}>
-              <Wifi size={24} style={{ color: '#eab308' }} />
-            </div>
-            <span className="scan-type-text">Network</span>
-            <span className="scan-type-desc">Port & service analysis</span>
-          </div>
-
-          <div className="scan-type-item cursor-target" style={{ borderTopColor: '#ec4899' }}>
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)' }}>
-              <Globe size={24} style={{ color: '#ec4899' }} />
-            </div>
-            <span className="scan-type-text">WHOIS</span>
-            <span className="scan-type-desc">Domain information</span>
-          </div>
-
-          <div className="scan-type-item cursor-target" style={{ borderTopColor: '#ef4444' }}>
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
-              <Code size={24} style={{ color: '#ef4444' }} />
-            </div>
-            <span className="scan-type-text">Technologies</span>
-            <span className="scan-type-desc">Tech stack detection</span>
-          </div>
+          {Object.entries(securityCheckInfo).map(([name, info]) => {
+            const IconComponent = info.icon;
+            return (
+              <div 
+                key={name}
+                className="scan-type-item clickable cursor-target" 
+                style={{ borderTopColor: info.color }}
+                onClick={() => handleCardClick({ name, ...info })}
+              >
+                <div className="scan-type-icon" style={{ backgroundColor: `${info.color}15` }}>
+                  <IconComponent size={24} style={{ color: info.color }} />
+                </div>
+                <div className="scan-type-content">
+                  <span className="scan-type-text">{name}</span>
+                  <span className="scan-type-desc">{info.description.substring(0, 60)}...</span>
+                  <span className="scan-type-click-hint">Click for details →</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -670,8 +649,15 @@ const getStatusColor = (status) => {
               {scanResults.checks.map((check, index) => {
                 const IconComponent = getIconComponent(check.icon);
                 const StatusIcon = getStatusIcon(check.status);
+                const checkInfo = securityCheckInfo[check.name];
+                
                 return (
-                  <div key={index} className="scan-check-item cursor-target" style={{ borderLeftColor: check.color }}>
+                  <div 
+                    key={index} 
+                    className="scan-check-item clickable cursor-target" 
+                    style={{ borderLeftColor: check.color }}
+                    onClick={() => handleCardClick({ ...check, ...checkInfo })}
+                  >
                     <div className="scan-check-header">
                       <div className="scan-check-header-left">
                         <IconComponent size={18} style={{ color: check.color }} />
@@ -685,6 +671,7 @@ const getStatusColor = (status) => {
                       </div>
                     </div>
                     <p className="scan-check-details">{check.details}</p>
+                    <div className="scan-check-click-hint">Click for more details →</div>
                   </div>
                 );
               })}
@@ -704,6 +691,137 @@ const getStatusColor = (status) => {
               <Eye size={16} />
               View Details
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ===== CHECK DETAILS MODAL - SAME WIDTH AS CARDS ===== */}
+      {showCheckModal && selectedCheck && (
+        <div className="scan-modal-overlay" onClick={closeModal}>
+          <div className="scan-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="scan-modal-close" onClick={closeModal}>
+              <X size={24} />
+            </button>
+            
+            <div className="scan-modal-header" style={{ borderBottomColor: selectedCheck.color || '#2563eb' }}>
+              <div className="scan-modal-icon" style={{ backgroundColor: `${selectedCheck.color || '#2563eb'}15` }}>
+                {selectedCheck.icon ? (
+                  <selectedCheck.icon size={28} style={{ color: selectedCheck.color || '#2563eb' }} />
+                ) : (
+                  <Shield size={28} style={{ color: selectedCheck.color || '#2563eb' }} />
+                )}
+              </div>
+              <div>
+                <h2>{selectedCheck.name}</h2>
+                {selectedCheck.status && (
+                  <span className="scan-modal-status" style={{ color: selectedCheck.color }}>
+                    Status: {selectedCheck.status}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="scan-modal-body">
+              {/* Description Section */}
+              <div className="scan-modal-section">
+                <h3>
+                  <Info size={16} />
+                  Description
+                </h3>
+                <p>{selectedCheck.description || 'No description available.'}</p>
+              </div>
+
+              {/* Example Section */}
+              <div className="scan-modal-section">
+                <h3>
+                  <CheckCircle size={16} />
+                  Example
+                </h3>
+                <div className="scan-modal-example">
+                  <p>{selectedCheck.example || 'No example available.'}</p>
+                </div>
+              </div>
+
+              {/* Why It Matters Section */}
+              <div className="scan-modal-section importance">
+                <h3>
+                  <AlertTriangle size={16} />
+                  Why It Matters
+                </h3>
+                <p>{selectedCheck.importance || 'No importance information available.'}</p>
+              </div>
+
+              {/* Risk Level */}
+              {selectedCheck.riskLevel && (
+                <div className="scan-modal-section risk">
+                  <h3>
+                    <AlertCircle size={16} />
+                    Risk Level
+                  </h3>
+                  <span 
+                    className="scan-modal-risk" 
+                    style={{ 
+                      backgroundColor: 
+                        selectedCheck.riskLevel === 'Critical' ? '#ef444420' :
+                        selectedCheck.riskLevel === 'High' ? '#f9731620' :
+                        selectedCheck.riskLevel === 'Medium' ? '#eab30820' :
+                        '#22c55e20',
+                      color:
+                        selectedCheck.riskLevel === 'Critical' ? '#ef4444' :
+                        selectedCheck.riskLevel === 'High' ? '#f97316' :
+                        selectedCheck.riskLevel === 'Medium' ? '#eab308' :
+                        '#22c55e'
+                    }}
+                  >
+                    {selectedCheck.riskLevel}
+                  </span>
+                </div>
+              )}
+
+              {/* Common Issues */}
+              {selectedCheck.commonIssues && selectedCheck.commonIssues.length > 0 && (
+                <div className="scan-modal-section issues">
+                  <h3>
+                    <AlertCircle size={16} />
+                    Common Issues Found
+                  </h3>
+                  <ul className="scan-modal-issues">
+                    {selectedCheck.commonIssues.map((issue, idx) => (
+                      <li key={idx}>
+                        <AlertCircle size={14} />
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Check Result if available */}
+              {selectedCheck.status && (
+                <div className="scan-modal-section result">
+                  <h3>
+                    <Activity size={16} />
+                    Check Result
+                  </h3>
+                  <div className="scan-modal-result">
+                    <span className="scan-modal-result-status" style={{ color: selectedCheck.color }}>
+                      {selectedCheck.status}
+                    </span>
+                    <p>{selectedCheck.details || 'No details available.'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="scan-modal-footer">
+              <button className="scan-modal-btn primary" onClick={closeModal}>
+                <CheckCircle size={16} />
+                Got It
+              </button>
+              <button className="scan-modal-btn secondary" onClick={closeModal}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

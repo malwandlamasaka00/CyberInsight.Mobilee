@@ -25,9 +25,10 @@ import {
   Trash2,
   Eye
 } from 'lucide-react';
+import { historyService } from '../../services/historyService';
 import './Profile.css';
 
-const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
+const Profile = ({ user: propUser, onLogout, onSelectScan }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedScan, setSelectedScan] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
@@ -40,98 +41,105 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
   const [stream, setStream] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [scanHistory, setScanHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const menuRef = useRef(null);
 
+  // Get user from props or localStorage
+  const getUser = () => {
+    if (propUser) return propUser;
+    
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        return JSON.parse(storedUser);
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    
+    try {
+      const sessionUser = sessionStorage.getItem('user');
+      if (sessionUser) {
+        const parsed = JSON.parse(sessionUser);
+        localStorage.setItem('user', JSON.stringify(parsed));
+        return parsed;
+      }
+    } catch (error) {
+      console.error('Error parsing session user data:', error);
+    }
+    
+    return null;
+  };
+
+  const user = getUser();
+
+  // Helper function to get user's full name
+  const getUserFullName = () => {
+    if (!user) return '';
+    if (user.name) return user.name;
+    if (user.full_name) return user.full_name;
+    if (user.first_name) {
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    }
+    if (user.email) return user.email.split('@')[0];
+    return '';
+  };
+
+  // Initialize profile with user data from registration
   const [profile, setProfile] = useState({
-    name: user?.name || 'Demo User',
-    email: user?.email || 'demo@cyberinsight.com',
-    role: 'Security Administrator',
-    phone: '+1 (555) 123-4567',
-    joined: user?.memberSince || 'Jan 2026',
-    lastActive: new Date().toLocaleString()
+    name: getUserFullName() || '',
+    email: user?.email || ''
   });
 
-  const userData = user || {
-    name: 'Demo User',
-    email: 'demo@cyberinsight.com',
-    memberSince: 'Jan 2026',
-  };
-
-  // Use the scanHistory from props or default data
-  const scans = scanHistory && scanHistory.length > 0 ? scanHistory : [
-    { id: 1, url: 'example.com', date: 'Today 14:32', score: 92, status: 'pass' },
-    { id: 2, url: 'myapp.dev', date: 'Yesterday 09:15', score: 76, status: 'warn' },
-    { id: 3, url: 'api.secure.co', date: 'Jul 7, 2026', score: 88, status: 'pass' },
-    { id: 4, url: 'testsite.io', date: 'Jul 5, 2026', score: 65, status: 'warn' },
-    { id: 5, url: 'securebank.com', date: 'Jul 3, 2026', score: 95, status: 'pass' },
-  ];
-
-  // ===== TOAST NOTIFICATION - TOP RIGHT =====
-  const showToast = (message, type = 'success') => {
-    // Remove existing toasts
-    const existingToasts = document.querySelectorAll('.toast-notification');
-    existingToasts.forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    
-    const icons = {
-      success: '✅',
-      error: '❌',
-      info: 'ℹ️'
+  // Load scan history from historyService
+  useEffect(() => {
+    const loadHistory = () => {
+      try {
+        const history = historyService.getHistory();
+        setScanHistory(history);
+      } catch (error) {
+        console.error('Error loading scan history:', error);
+        setScanHistory([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    toast.innerHTML = `
-      <span style="font-size: 20px;">${icons[type] || icons.success}</span>
-      <span>${message}</span>
-      <button class="toast-close" onclick="this.closest('.toast-notification').remove()">
-        ✕
-      </button>
-    `;
-    
-    document.body.appendChild(toast);
+    loadHistory();
+  }, []);
 
-    // Auto dismiss after 4 seconds
-    setTimeout(() => {
-      if (document.body.contains(toast)) {
-        toast.style.animation = 'slideOutToast 0.3s ease forwards';
-        setTimeout(() => {
-          if (document.body.contains(toast)) {
-            document.body.removeChild(toast);
-          }
-        }, 300);
-      }
-    }, 4000);
-  };
-
-  // ===== CUSTOM CONFIRM MODAL =====
-  const showConfirmModalDialog = (message, onConfirm) => {
-    setConfirmAction(() => onConfirm);
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirm = () => {
-    if (confirmAction) {
-      confirmAction();
-    }
-    setShowConfirmModal(false);
-    setConfirmAction(null);
-  };
-
-  const handleCancelConfirm = () => {
-    setShowConfirmModal(false);
-    setConfirmAction(null);
-  };
-
-  // Load saved image on mount
+  // Update profile when user changes
   useEffect(() => {
-    const savedImage = localStorage.getItem('profileImage');
-    if (savedImage) {
-      setProfileImage(savedImage);
+    if (user) {
+      setProfile({
+        name: getUserFullName() || user?.email?.split('@')[0] || '',
+        email: user?.email || ''
+      });
+    }
+  }, [user]);
+
+  // Load saved image for specific user
+  useEffect(() => {
+    if (user?.email) {
+      const savedImage = localStorage.getItem(`profileImage_${user.email}`);
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
+    }
+  }, [user]);
+
+  // Load saved image on mount (fallback)
+  useEffect(() => {
+    if (!user?.email) {
+      const savedImage = localStorage.getItem('profileImage');
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
     }
   }, []);
 
@@ -171,27 +179,85 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
 
   const handleSave = () => {
     setIsEditing(false);
-    localStorage.setItem('profileData', JSON.stringify(profile));
-    showToast(' Profile updated successfully!', 'success');
+    // Save profile data with user-specific key
+    if (user?.email) {
+      localStorage.setItem(`profileData_${user.email}`, JSON.stringify(profile));
+    } else {
+      localStorage.setItem('profileData', JSON.stringify(profile));
+    }
+    showToast('✅ Profile updated successfully!', 'success');
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setProfile({
-      name: user?.name || 'Demo User',
-      email: user?.email || 'demo@cyberinsight.com',
-      role: 'Security Administrator',
-      phone: '+1 (555) 123-4567',
-      joined: user?.memberSince || 'Jan 2026',
-      lastActive: new Date().toLocaleString()
-    });
+    if (user) {
+      setProfile({
+        name: getUserFullName() || user?.email?.split('@')[0] || '',
+        email: user?.email || ''
+      });
+    }
     showToast('📝 Changes cancelled', 'info');
+  };
+
+  // ===== TOAST NOTIFICATION - TOP RIGHT =====
+  const showToast = (message, type = 'success') => {
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    const icons = {
+      success: '✅',
+      error: '❌',
+      info: 'ℹ️'
+    };
+    
+    toast.innerHTML = `
+      <span style="font-size: 20px;">${icons[type] || icons.success}</span>
+      <span>${message}</span>
+      <button class="toast-close" onclick="this.closest('.toast-notification').remove()">
+        ✕
+      </button>
+    `;
+    
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        toast.style.animation = 'slideOutToast 0.3s ease forwards';
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }
+    }, 4000);
+  };
+
+  // ===== CUSTOM CONFIRM MODAL =====
+  const showConfirmModalDialog = (message, onConfirm) => {
+    setConfirmAction(() => onConfirm);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      confirmAction();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
   };
 
   // ===== PROFILE PICTURE HANDLERS =====
 
   const getFirstLetter = () => {
-    if (!profile.name) return 'U';
+    if (!profile.name) return '?';
     return profile.name.charAt(0).toUpperCase();
   };
 
@@ -216,10 +282,15 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result);
-        localStorage.setItem('profileImage', reader.result);
+        // Save with user-specific key
+        if (user?.email) {
+          localStorage.setItem(`profileImage_${user.email}`, reader.result);
+        } else {
+          localStorage.setItem('profileImage', reader.result);
+        }
         setIsUploading(false);
         setShowMenu(false);
-        showToast(' Profile picture uploaded successfully!', 'success');
+        showToast('✅ Profile picture uploaded successfully!', 'success');
         window.dispatchEvent(
           new CustomEvent('profilePictureUpdated', {
             detail: {
@@ -312,9 +383,13 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
   const savePhoto = () => {
     if (capturedPhoto) {
       setProfileImage(capturedPhoto);
-      localStorage.setItem('profileImage', capturedPhoto);
+      if (user?.email) {
+        localStorage.setItem(`profileImage_${user.email}`, capturedPhoto);
+      } else {
+        localStorage.setItem('profileImage', capturedPhoto);
+      }
       closeCamera();
-      showToast(' Profile picture saved successfully!', 'success');
+      showToast('✅ Profile picture saved successfully!', 'success');
       window.dispatchEvent(
         new CustomEvent('profilePictureUpdated', {
           detail: {
@@ -358,7 +433,11 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
       'Are you sure you want to remove your profile picture?',
       () => {
         setProfileImage(null);
-        localStorage.removeItem('profileImage');
+        if (user?.email) {
+          localStorage.removeItem(`profileImage_${user.email}`);
+        } else {
+          localStorage.removeItem('profileImage');
+        }
         setShowMenu(false);
         showToast('🗑️ Profile picture removed', 'info');
         window.dispatchEvent(
@@ -385,13 +464,60 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
     document.body.style.overflow = 'auto';
   };
 
+  // ===== GET SCAN DETAILS =====
+  const getScanDetails = (scan) => {
+    const findings = [
+      { 
+        label: 'SSL Certificate', 
+        status: scan.sslStatus === 'valid' ? 'pass' : scan.sslStatus === 'expiring' ? 'warn' : 'fail', 
+        detail: scan.sslStatus === 'valid' ? 'Valid · 126 days left' : scan.sslStatus === 'expiring' ? 'Expiring soon · 15 days left' : 'Expired certificate',
+        severity: scan.sslStatus === 'valid' ? 'low' : scan.sslStatus === 'expiring' ? 'medium' : 'high',
+        impact: 'Protects data in transit between browser and server.',
+        recommendation: scan.sslStatus === 'valid' ? 'Certificate is valid and secure' : scan.sslStatus === 'expiring' ? 'Renew certificate within 30 days' : 'Renew SSL certificate immediately'
+      },
+      { 
+        label: 'Content-Security-Policy (CSP)', 
+        status: scan.cspStatus === 'configured' ? 'pass' : scan.cspStatus === 'partial' ? 'warn' : 'fail', 
+        detail: scan.cspStatus === 'configured' ? 'Configured properly' : scan.cspStatus === 'partial' ? 'Partially configured' : 'Missing',
+        severity: scan.cspStatus === 'configured' ? 'low' : scan.cspStatus === 'partial' ? 'medium' : 'high',
+        impact: 'Prevents XSS attacks by controlling resources.',
+        recommendation: scan.cspStatus === 'configured' ? 'CSP is properly configured' : scan.cspStatus === 'partial' ? 'Add missing CSP directives' : 'Implement a Content Security Policy'
+      },
+      { 
+        label: 'HSTS (Strict-Transport-Security)', 
+        status: scan.hstsStatus === 'enabled' ? 'pass' : scan.hstsStatus === 'weak' ? 'warn' : 'fail', 
+        detail: scan.hstsStatus === 'enabled' ? 'Enabled with valid config' : scan.hstsStatus === 'weak' ? 'Configured but weak' : 'Missing',
+        severity: scan.hstsStatus === 'enabled' ? 'low' : scan.hstsStatus === 'weak' ? 'medium' : 'high',
+        impact: 'Forces HTTPS connections to prevent downgrade attacks.',
+        recommendation: scan.hstsStatus === 'enabled' ? 'HSTS is properly configured' : scan.hstsStatus === 'weak' ? 'Increase HSTS max-age' : 'Enable HSTS on your server'
+      },
+      { 
+        label: 'SPF Record', 
+        status: scan.spfStatus === 'configured' ? 'pass' : scan.spfStatus === 'partial' ? 'warn' : 'fail', 
+        detail: scan.spfStatus === 'configured' ? 'Configured with proper records' : scan.spfStatus === 'partial' ? 'Partially configured' : 'Missing',
+        severity: scan.spfStatus === 'configured' ? 'low' : scan.spfStatus === 'partial' ? 'medium' : 'high',
+        impact: 'Prevents email spoofing and protects domain reputation.',
+        recommendation: scan.spfStatus === 'configured' ? 'SPF is properly configured' : scan.spfStatus === 'partial' ? 'Update SPF records' : 'Configure SPF records'
+      },
+      { 
+        label: 'Open Ports', 
+        status: scan.portsStatus === 'secured' ? 'pass' : scan.portsStatus === 'warning' ? 'warn' : 'fail', 
+        detail: scan.portsStatus === 'secured' ? 'No unnecessary ports exposed' : scan.portsStatus === 'warning' ? 'Some unnecessary ports open' : 'Critical ports exposed',
+        severity: scan.portsStatus === 'secured' ? 'low' : scan.portsStatus === 'warning' ? 'medium' : 'high',
+        impact: 'Reduces attack surface and minimizes entry points.',
+        recommendation: scan.portsStatus === 'secured' ? 'All ports are properly secured' : scan.portsStatus === 'warning' ? 'Close unnecessary open ports' : 'Immediately close exposed critical ports'
+      },
+    ];
+    return findings;
+  };
+
   // ===== STATS =====
 
-  const totalScans = scans.length;
-  const avgScore = totalScans > 0 ? Math.round(scans.reduce((acc, curr) => acc + curr.score, 0) / totalScans) : 0;
-  const passedScans = scans.filter(s => s.status === 'pass').length;
-  const failedScans = scans.filter(s => s.status === 'fail').length;
-  const warnScans = scans.filter(s => s.status === 'warn').length;
+  const totalScans = scanHistory.length;
+  const avgScore = totalScans > 0 ? Math.round(scanHistory.reduce((acc, curr) => acc + curr.score, 0) / totalScans) : 0;
+  const passedScans = scanHistory.filter(s => s.status === 'pass' || s.score >= 80).length;
+  const failedScans = scanHistory.filter(s => s.status === 'fail' || s.score < 60).length;
+  const warnScans = scanHistory.filter(s => s.status === 'warn' || (s.score >= 60 && s.score < 80)).length;
 
   const getScoreClass = (score) => {
     if (score >= 80) return 'score-high';
@@ -399,69 +525,45 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
     return 'score-low';
   };
 
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'pass': return <CheckCircle size={16} style={{ color: '#43e97b' }} />;
-      case 'warn': return <AlertTriangle size={16} style={{ color: '#fdcb6e' }} />;
-      case 'fail': return <XCircle size={16} style={{ color: '#f5576c' }} />;
-      default: return null;
-    }
+  const getStatusIcon = (status, score) => {
+    if (status === 'pass' || score >= 80) return <CheckCircle size={16} style={{ color: '#43e97b' }} />;
+    if (status === 'warn' || (score >= 60 && score < 80)) return <AlertTriangle size={16} style={{ color: '#fdcb6e' }} />;
+    return <XCircle size={16} style={{ color: '#f5576c' }} />;
   };
 
-  const getStatusLabel = (status) => {
-    switch(status) {
-      case 'pass': return 'Secure';
-      case 'warn': return 'Warning';
-      case 'fail': return 'Critical';
-      default: return '';
-    }
+  const getStatusLabel = (status, score) => {
+    if (status === 'pass' || score >= 80) return 'Secure';
+    if (status === 'warn' || (score >= 60 && score < 80)) return 'Warning';
+    return 'Critical';
   };
 
-  const getScanDetails = (scan) => {
-    const findings = [
-      { 
-        label: 'SSL Certificate', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Valid · 126 days left' : scan.score >= 60 ? 'Expiring soon · 15 days left' : 'Expired certificate',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Protects data in transit between browser and server.',
-        recommendation: scan.score >= 80 ? 'Certificate is valid and secure' : scan.score >= 60 ? 'Renew certificate within 30 days' : 'Renew SSL certificate immediately'
-      },
-      { 
-        label: 'Content-Security-Policy (CSP)', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Configured properly' : scan.score >= 60 ? 'Partially configured' : 'Missing',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Prevents XSS attacks by controlling resources.',
-        recommendation: scan.score >= 80 ? 'CSP is properly configured' : scan.score >= 60 ? 'Add missing CSP directives' : 'Implement a Content Security Policy'
-      },
-      { 
-        label: 'HSTS (Strict-Transport-Security)', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Enabled with valid config' : scan.score >= 60 ? 'Configured but weak' : 'Missing',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Forces HTTPS connections to prevent downgrade attacks.',
-        recommendation: scan.score >= 80 ? 'HSTS is properly configured' : scan.score >= 60 ? 'Increase HSTS max-age' : 'Enable HSTS on your server'
-      },
-      { 
-        label: 'SPF Record', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Configured with proper records' : scan.score >= 60 ? 'Partially configured' : 'Missing',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Prevents email spoofing and protects domain reputation.',
-        recommendation: scan.score >= 80 ? 'SPF is properly configured' : scan.score >= 60 ? 'Update SPF records' : 'Configure SPF records'
-      },
-      { 
-        label: 'Open Ports', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'No unnecessary ports exposed' : scan.score >= 60 ? 'Some unnecessary ports open' : 'Critical ports exposed',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Reduces attack surface and minimizes entry points.',
-        recommendation: scan.score >= 80 ? 'All ports are properly secured' : scan.score >= 60 ? 'Close unnecessary open ports' : 'Immediately close exposed critical ports'
-      },
-    ];
-    return findings;
-  };
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="profile-container">
+        <div className="profile-loading">Loading profile...</div>
+      </div>
+    );
+  }
+
+  // If no user is logged in
+  if (!user && !profile.email) {
+    return (
+      <div className="profile-container">
+        <div className="profile-error">
+          <Shield size={48} />
+          <h2>No User Logged In</h2>
+          <p>Please log in to view your profile.</p>
+          <button 
+            className="btn-primary cursor-target"
+            onClick={() => window.location.href = '/login'}
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-container">
@@ -570,8 +672,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
             )}
           </div>
           
-          <div className="profile-name">{profile.name}</div>
-          <div className="profile-role">{profile.role}</div>
+          <div className="profile-name">{profile.name || 'User'}</div>
+          
           <div className="profile-badge">
             <Shield size={14} />
             <span>Verified Account</span>
@@ -598,7 +700,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <span>{profile.name}</span>
+                  <span>{profile.name || 'Not set'}</span>
                 )}
               </div>
             </div>
@@ -616,49 +718,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <span>{profile.email}</span>
+                  <span>{profile.email || 'Not set'}</span>
                 )}
-              </div>
-            </div>
-
-            <div className="profile-detail-item">
-              <label>Role</label>
-              <div className="profile-detail-value">
-                <Shield size={16} />
-                <span>{profile.role}</span>
-              </div>
-            </div>
-
-            <div className="profile-detail-item">
-              <label>Phone</label>
-              <div className="profile-detail-value">
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    name="phone"
-                    value={profile.phone} 
-                    className="profile-input cursor-target"
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  <span>{profile.phone}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="profile-detail-item">
-              <label>Member Since</label>
-              <div className="profile-detail-value">
-                <Calendar size={16} />
-                <span>{profile.joined}</span>
-              </div>
-            </div>
-
-            <div className="profile-detail-item">
-              <label>Last Active</label>
-              <div className="profile-detail-value">
-                <Activity size={16} />
-                <span>{profile.lastActive}</span>
               </div>
             </div>
           </div>
@@ -688,7 +749,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
             </div>
             <div className="stat-info">
               <span className="stat-label">Avg Security Score</span>
-              <span className="stat-value">{avgScore}</span>
+              <span className="stat-value">{avgScore}%</span>
             </div>
           </div>
           <div className="stat-card-mini">
@@ -737,8 +798,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
           <span className="scan-count-badge">{totalScans} scans</span>
         </div>
         <div className="profile-scans-list">
-          {scans.length > 0 ? (
-            scans.map((scan) => (
+          {scanHistory.length > 0 ? (
+            scanHistory.map((scan) => (
               <div 
                 key={scan.id} 
                 className="profile-scan-item clickable"
@@ -747,21 +808,21 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
               >
                 <div className="scan-item-left">
                   <span className="scan-status-icon">
-                    {getStatusIcon(scan.status)}
+                    {getStatusIcon(scan.status, scan.score)}
                   </span>
                   <div className="scan-item-info">
-                    <span className="scan-url">{scan.url}</span>
-                    <span className="scan-date">{scan.date}</span>
+                    <span className="scan-url">{scan.domain || scan.url}</span>
+                    <span className="scan-date">{new Date(scan.date).toLocaleString()}</span>
                   </div>
                 </div>
                 <div className="scan-item-right">
                   <span className={`scan-score ${getScoreClass(scan.score)}`}>
-                    {scan.score}
+                    {scan.score}%
                   </span>
                   <span className="scan-status-badge">
-                    {scan.status === 'pass' && <span className="badge-pass">Secure</span>}
-                    {scan.status === 'warn' && <span className="badge-warn">Warning</span>}
-                    {scan.status === 'fail' && <span className="badge-fail">Critical</span>}
+                    {scan.status === 'pass' || scan.score >= 80 ? <span className="badge-pass">Secure</span> : 
+                     scan.status === 'warn' || (scan.score >= 60 && scan.score < 80) ? <span className="badge-warn">Warning</span> : 
+                     <span className="badge-fail">Critical</span>}
                   </span>
                   <span className="scan-view-icon">
                     <ChevronRight size={14} />
@@ -829,8 +890,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
               className="full-image"
             />
             <div className="full-image-info">
-              <h3>{profile.name}</h3>
-              <p>{profile.email}</p>
+              <h3>{profile.name || 'User'}</h3>
+              <p>{profile.email || ''}</p>
             </div>
           </div>
         </div>
@@ -920,8 +981,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                 <Shield size={28} />
               </div>
               <div className="popup-title">
-                <h2>{selectedScan.url}</h2>
-                <span className="popup-date"><Calendar size={14} /> {selectedScan.date}</span>
+                <h2>{selectedScan.domain || selectedScan.url}</h2>
+                <span className="popup-date"><Calendar size={14} /> {new Date(selectedScan.date).toLocaleString()}</span>
               </div>
             </div>
 
@@ -930,7 +991,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                 borderColor: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 60 ? '#fdcb6e' : '#f5576c',
                 color: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 60 ? '#fdcb6e' : '#f5576c'
               }}>
-                {selectedScan.score}
+                {selectedScan.score}%
               </div>
               <div className="popup-score-info">
                 <h3>Security Score: {selectedScan.score >= 80 ? 'Good' : selectedScan.score >= 60 ? 'Fair' : 'Poor'}</h3>
