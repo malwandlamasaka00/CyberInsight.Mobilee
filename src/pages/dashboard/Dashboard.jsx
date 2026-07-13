@@ -21,6 +21,28 @@ const Dashboard = () => {
   useEffect(() => {
   loadDashboard();
 }, []);
+    const getIssuesFoundCount = (scan) => {
+      if (!Array.isArray(scan.checks)) return 0;
+
+      return scan.checks.filter(
+        check => check.status === "fail" || check.status === "warning"
+      ).length;
+    };
+
+    const getPassedChecksCount = (scan) => {
+      if (!Array.isArray(scan.checks)) return 0;
+
+      return scan.checks.filter(
+        check => check.status === "passed"
+      ).length;
+    };
+
+    const getScanStatus = (score) => {
+      if (score >= 80) return "Secure";
+      if (score >= 50) return "Needs Improvement";
+      return "Critical";
+    };
+
 
 const loadDashboard = () => {
   const history = historyService.getHistory();
@@ -34,31 +56,23 @@ const loadDashboard = () => {
       )
     : 0;
 
-  const criticalIssues = history.reduce(
-  (sum, scan) => sum + (scan.critical || 0),
+  const issuesFound = history.reduce(
+    (sum, scan) => sum + getIssuesFoundCount(scan),
+    0
+  );
+  const passedChecks = history.reduce(
+  (sum, scan) => sum + getPassedChecksCount(scan),
   0
 );
 
-  const passedChecks = history.reduce((sum, scan) => {
-  let passed = 0;
-
-  if (scan.sslStatus === "valid") passed++;
-  if (scan.cspStatus === "configured") passed++;
-  if (scan.hstsStatus === "enabled") passed++;
-  if (scan.spfStatus === "configured") passed++;
-  if (scan.portsStatus === "secure") passed++;
-
-  return sum + passed;
-}, 0);
-
   const recentScans = history.slice(0, 5).map((scan, index) => ({
-    id: index,
-    domain: scan.domain || scan.url,
-    date: scan.timestamp || scan.date || new Date().toISOString(),
-    score: scan.score,
-
-criticalIssues: scan.critical || 0
-  }));
+  id: index,
+  domain: scan.domain || scan.url,
+  date: scan.timestamp || scan.date || new Date().toISOString(),
+  score: scan.score,
+  status: getScanStatus(scan.score),
+  issuesFound: getIssuesFoundCount(scan)
+}));
 
   const recentReports = history
     .filter(scan => scan.reportGenerated)
@@ -71,19 +85,19 @@ criticalIssues: scan.critical || 0
       type: "PDF"
     }));
 
-  setData({
-    overallScore,
-    scansThisMonth: totalScans,
-    criticalIssues,
-    passedChecks,
-    recentScans,
-    recentReports
-  });
+ setData({
+  overallScore,
+  scansThisMonth: totalScans,
+  issuesFound,
+  passedChecks,
+  recentScans,
+  recentReports
+});
 };
- const [data, setData] = useState({
+const [data, setData] = useState({
   overallScore: 0,
   scansThisMonth: 0,
-  criticalIssues: 0,
+  issuesFound: 0,
   passedChecks: 0,
   recentScans: [],
   recentReports: []
@@ -145,7 +159,7 @@ criticalIssues: scan.critical || 0
           />
           <DashboardStatCard
             title="Critical Issues"
-            value={data.criticalIssues}
+            value={data.issuesFound}
             icon={AlertTriangle}
             color="red"
             description="Require immediate attention"
@@ -165,7 +179,7 @@ criticalIssues: scan.critical || 0
           <div className="dashboard-left">
             <OverallScoreCard
               score={data.overallScore}
-              criticalIssues={data.criticalIssues}
+              issuesFound={data.issuesFound}
               warnings={0}
               passedChecks={data.passedChecks}
               totalScans={data.scansThisMonth}

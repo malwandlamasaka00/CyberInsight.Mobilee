@@ -21,14 +21,14 @@ const RecentScanCard = ({ scans }) => {
         </span>
       );
     }
-    if (scan.score >= 60) {
-      return (
-        <span className="badge badge-moderate">
-          <AlertTriangle size={12} />
-          Moderate
-        </span>
-      );
-    }
+    if (scan.score >= 50) {
+  return (
+    <span className="badge badge-moderate">
+      <AlertTriangle size={12} />
+      Needs Improvement
+    </span>
+  );
+}
     return (
       <span className="badge badge-critical">
         <AlertTriangle size={12} />
@@ -37,16 +37,15 @@ const RecentScanCard = ({ scans }) => {
     );
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'score-green';
-    if (score >= 60) return 'score-yellow';
-    if (score >= 40) return 'score-orange';
-    return 'score-red';
-  };
+ const getScoreColor = (score) => {
+  if (score >= 80) return 'score-green';
+  if (score >= 50) return 'score-yellow';
+  return 'score-red';
+};
 
   const getStatusDot = (score) => {
     if (score >= 80) return 'dot-secure';
-    if (score >= 60) return 'dot-moderate';
+    if (score >= 50) return 'dot-moderate';
     return 'dot-critical';
   };
 
@@ -60,16 +59,15 @@ const RecentScanCard = ({ scans }) => {
     setSelectedScan(null);
   };
 
-  const getScoreLabel = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Needs Improvement';
-    return 'Critical';
-  };
+const getScoreLabel = (score) => {
+  if (score >= 80) return 'Secure';
+  if (score >= 50) return 'Needs Improvement';
+  return 'Critical';
+};
 
   const getStatusText = (score) => {
     if (score >= 80) return 'Secure';
-    if (score >= 60) return 'Moderate';
+    if (score >= 50) return 'Needs Improvement';
     return 'Critical';
   };
 
@@ -100,10 +98,10 @@ const RecentScanCard = ({ scans }) => {
                 <div className="scan-info">
                   <div className="scan-domain-wrapper">
                     <span className="scan-domain">{scan.domain}</span>
-                    {scan.criticalIssues > 0 && (
+                    {scan.issuesFound > 0 && (
                       <span className="scan-issues">
                         <AlertTriangle size={12} />
-                        {scan.criticalIssues} critical
+                        {scan.issuesFound} issues
                       </span>
                     )}
                   </div>

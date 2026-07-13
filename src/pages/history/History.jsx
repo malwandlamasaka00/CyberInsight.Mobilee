@@ -43,31 +43,46 @@ const History = () => {
     setScans(history);
   }, []); 
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'score-green';
-    if (score >= 60) return 'score-yellow';
-    if (score >= 40) return 'score-orange';
-    return 'score-red';
-  };
+ const getScoreColor = (score) => {
+  if (score >= 80) return 'score-green';
+  if (score >= 50) return 'score-yellow';
+  return 'score-red';
+};
+const getStatusFromScore = (score) => {
+  if (score >= 80) return "Secure";
+  if (score >= 50) return "Needs Improvement";
+  return "Critical";
+};
 
-  const getStatusBadge = (status, score) => {
-    if (status === 'pending') {
-      return <span className="status-badge pending"><Clock size={11} /> Pending</span>;
-    }
-    if (status === 'pass' || score >= 80) {
-      return <span className="status-badge secure"><CheckCircle size={11} /> Secure</span>;
-    }
-    if (status === 'warn' || score >= 60) {
-      return <span className="status-badge moderate"><AlertTriangle size={11} /> Moderate</span>;
-    }
-    return <span className="status-badge critical"><XCircle size={11} /> Critical</span>;
-  };
+const getStatusBadge = (score) => {
+  if (score >= 80) {
+    return (
+      <span className="status-badge secure">
+        <CheckCircle size={11} /> Secure
+      </span>
+    );
+  }
+
+  if (score >= 50) {
+    return (
+      <span className="status-badge moderate">
+        <AlertTriangle size={11} /> Needs Improvement
+      </span>
+    );
+  }
+
+  return (
+    <span className="status-badge critical">
+      <XCircle size={11} /> Critical
+    </span>
+  );
+};
 
   const getScoreIcon = (score) => {
-    if (score >= 80) return <CheckCircle size={14} className="icon-green" />;
-    if (score >= 60) return <AlertTriangle size={14} className="icon-yellow" />;
-    return <XCircle size={14} className="icon-red" />;
-  };
+  if (score >= 80) return <CheckCircle size={14} className="icon-green" />;
+  if (score >= 50) return <AlertTriangle size={14} className="icon-yellow" />;
+  return <XCircle size={14} className="icon-red" />;
+};
 
   // Generate detailed findings for a scan
   const getScanDetails = (scan) => {
@@ -106,15 +121,23 @@ const History = () => {
       },
       { 
         label: 'Open Ports', 
-        status: scan.portsStatus === 'secured' ? 'pass' : scan.portsStatus === 'warning' ? 'warn' : 'fail', 
-        detail: scan.portsStatus === 'secured' ? 'No unnecessary ports exposed' : scan.portsStatus === 'warning' ? 'Some unnecessary ports open' : 'Critical ports exposed',
-        severity: scan.portsStatus === 'secured' ? 'low' : scan.portsStatus === 'warning' ? 'medium' : 'high',
+        status: scan.portsStatus === 'secured' ? 'pass' : scan.portsStatus === 'Needs Improvement' ? 'warn' : 'fail', 
+        detail: scan.portsStatus === 'secured' ? 'No unnecessary ports exposed' : scan.portsStatus === 'Needs Improvement' ? 'Some unnecessary ports open' : 'Critical ports exposed',
+        severity: scan.portsStatus === 'secured' ? 'low' : scan.portsStatus === 'Needs Improvement' ? 'medium' : 'high',
         impact: 'Reduces attack surface and minimizes entry points.',
-        recommendation: scan.portsStatus === 'secured' ? 'All ports are properly secured' : scan.portsStatus === 'warning' ? 'Close unnecessary open ports' : 'Immediately close exposed critical ports'
+        recommendation: scan.portsStatus === 'secured' ? 'All ports are properly secured' : scan.portsStatus === 'Needs Improvement' ? 'Close unnecessary open ports' : 'Immediately close exposed critical ports'
       },
     ];
     return findings;
   };
+
+  const getCriticalIssuesCount = (scan) => {
+  const findings = getScanDetails(scan);
+
+  return findings.filter(
+    finding => finding.severity === "high"
+  ).length;
+};
 
   // Handle scan click - opens popup
   const handleScanClick = (scan) => {
@@ -140,9 +163,9 @@ const History = () => {
     
     if (filterStatus !== 'all') {
       filtered = filtered.filter(scan => {
-        if (filterStatus === 'secure') return scan.status === 'pass' || scan.score >= 80;
-        if (filterStatus === 'moderate') return scan.status === 'warn' || (scan.score >= 60 && scan.score < 80);
-        if (filterStatus === 'critical') return scan.status === 'fail' || scan.score < 60;
+        if (filterStatus === 'secure') return scan.score >= 80;
+        if (filterStatus === 'moderate') return scan.score >= 50 && scan.score < 80;
+        if (filterStatus === 'critical') return scan.score < 50;
         return true;
       });
     }
@@ -172,9 +195,9 @@ const History = () => {
   const totalPages = Math.ceil(filteredScans.length / 5);
 
   // Get stats
-  const passCount = scans.filter(s => s.status === 'pass' || s.score >= 80).length;
-  const warnCount = scans.filter(s => s.status === 'warn' || (s.score >= 60 && s.score < 80)).length;
-  const failCount = scans.filter(s => s.status === 'fail' || s.score < 60).length;
+  const passCount = scans.filter(s => s.score >= 80).length;
+  const warnCount = scans.filter(s => s.score >= 50 && s.score < 80).length;
+  const failCount = scans.filter(s => s.score < 50).length;
   const avgScore = Math.round(scans.reduce((acc, s) => acc + s.score, 0) / scans.length);
 
   // ===== TOAST NOTIFICATION - TOP RIGHT =====
@@ -261,14 +284,14 @@ const History = () => {
               <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Date</th>
               <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Score</th>
               <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Status</th>
-              <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Critical Issues</th>
+              <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Issues Found</th>
             </tr>
           </thead>
           <tbody>
       `;
       
       filteredScans.forEach(scan => {
-        const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Warning' : 'Critical';
+        const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Needs Improvement' : 'Critical';
         const statusColor = scan.status === 'pass' ? '#43e97b' : scan.status === 'warn' ? '#fdcb6e' : '#f5576c';
         htmlContent += `
           <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -278,7 +301,7 @@ const History = () => {
             <td style="padding: 10px 12px;">
               <span style="background: ${statusColor}15; color: ${statusColor}; padding: 2px 10px; border-radius: 12px; font-weight: 600; font-size: 11px;">${statusText}</span>
             </td>
-            <td style="padding: 10px 12px; text-align: center;">${scan.critical > 0 ? scan.critical : '✓'}</td>
+            <td style="padding: 10px 12px; text-align: center;">${getCriticalIssuesCount(scan) > 0 ? getCriticalIssuesCount(scan) : '✓'}
           </tr>
         `;
       });
@@ -354,7 +377,7 @@ const History = () => {
       `;
       
       const statusColor = scan.status === 'pass' ? '#43e97b' : scan.status === 'warn' ? '#fdcb6e' : '#f5576c';
-      const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Warning' : 'Critical';
+      const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Needs Improvement' : 'Critical';
       
       let findingsHTML = '';
       findings.forEach(f => {
@@ -395,7 +418,7 @@ const History = () => {
           <div style="font-size: 12px; color: #64748b; display: flex; gap: 24px;">
             <span><strong>Date:</strong> ${new Date(scan.date).toLocaleString()}</span>
             <span><strong>Scan ID:</strong> #${scan.id}</span>
-            <span><strong>Critical Issues:</strong> ${scan.critical > 0 ? scan.critical : 'None'}</span>
+            <span><strong>Issues Found:</strong> ${getCriticalIssuesCount(scan) > 0 ? getCriticalIssuesCount(scan) : 'None'}</span>
           </div>
         </div>
         
@@ -508,7 +531,7 @@ const History = () => {
             <AlertTriangle size={20} />
           </div>
           <div className="stat-content">
-            <span className="stat-label">Warnings</span>
+            <span className="stat-label">Needs Improvement</span>
             <span className="stat-value" style={{ color: '#fdcb6e' }}>{warnCount}</span>
           </div>
         </div>
@@ -557,7 +580,7 @@ const History = () => {
           >
             <option value="all">All Status</option>
             <option value="secure">🟢 Secure</option>
-            <option value="moderate">🟡 Moderate</option>
+            <option value="moderate">🟡 Needs Improvement</option>
             <option value="critical">🔴 Critical</option>
           </select>
           <select 
@@ -582,7 +605,7 @@ const History = () => {
               <th className="col-date">Date</th>
               <th className="col-score">Score</th>
               <th className="col-status">Status</th>
-              <th className="col-critical">Critical Issues</th>
+              <th className="col-critical">Issues Found</th>
               <th className="col-actions">Actions</th>
             </tr>
           </thead>
@@ -606,15 +629,17 @@ const History = () => {
                     </span>
                   </td>
                   <td className="col-status">
-                    {getStatusBadge(scan.status, scan.score)}
+                    {getStatusBadge(scan.score)}
                   </td>
                   <td className="col-critical">
-                    {scan.critical > 0 ? (
-                      <span className="critical-count">{scan.critical}</span>
-                    ) : (
-                      <span className="no-critical">✓ None</span>
-                    )}
-                  </td>
+                     {getCriticalIssuesCount(scan) > 0 ? (
+                         <span className="critical-count">
+                      {getCriticalIssuesCount(scan)}
+                          </span>
+                       ) : (
+                    <span className="no-critical">✓ None</span>
+                  )}
+                </td>
                   <td className="col-actions">
                     <div className="actions-cell">
                       <button 
@@ -715,7 +740,7 @@ const History = () => {
             <div className="popup-header">
               <div className="popup-icon" style={{ 
                 background: selectedScan.score >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' : 
-                           selectedScan.score >= 60 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' : 
+                           selectedScan.score >= 50 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' : 
                            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
               }}>
                 <Shield size={28} />
@@ -729,20 +754,37 @@ const History = () => {
 
             <div className="popup-score-section">
               <div className="popup-score-circle" style={{ 
-                borderColor: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 60 ? '#fdcb6e' : '#f5576c',
-                color: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 60 ? '#fdcb6e' : '#f5576c'
+                borderColor: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 50 ? '#fdcb6e' : '#f5576c',
+                color: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 50 ? '#fdcb6e' : '#f5576c'
               }}>
                 {selectedScan.score}
               </div>
               <div className="popup-score-info">
-                <h3>Security Score: {selectedScan.score >= 80 ? 'Good' : selectedScan.score >= 60 ? 'Fair' : 'Poor'}</h3>
-                <p>Status: <span className={`status-badge ${selectedScan.status}`}>
-                  {selectedScan.status === 'pass' && '✅ Secure'}
-                  {selectedScan.status === 'warn' && '⚠️ Warning'}
-                  {selectedScan.status === 'fail' && '❌ Critical'}
-                </span></p>
+                <h3>
+                   Security Score: {
+                    selectedScan.score >= 80
+                      ? 'Secure'
+                      : selectedScan.score >= 50
+                      ? 'Needs Improvement'
+                      : 'Critical'
+                  }
+                </h3>
+                <p>
+                  Status:
+                  <span
+                    className={`status-badge ${
+                      selectedScan.score >= 80
+                        ? "secure"
+                        : selectedScan.score >= 50
+                        ? "moderate"
+                        : "critical"
+                    }`}
+                  >
+                    {getStatusFromScore(selectedScan.score)}
+                  </span>
+</p>
                 <div className="popup-stats-mini">
-                  <span><CheckCircle size={14} /> {selectedScan.critical === 0 ? 'No critical issues' : `${selectedScan.critical} critical issues`}</span>
+                  <span><CheckCircle size={14} /> {getCriticalIssuesCount(selectedScan) === 0 ? 'No Issues Found' : `${getCriticalIssuesCount(selectedScan)} Issues Found`}</span>
                 </div>
               </div>
             </div>

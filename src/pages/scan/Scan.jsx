@@ -165,7 +165,7 @@ let calculatedStatus = "Critical";
 
 if (score >= 80) {
   calculatedStatus = "Secure";
-} else if (score >= 60) {
+} else if (score >= 50) {
   calculatedStatus = "Needs Improvement";
 } else {
   calculatedStatus = "Critical";
@@ -223,7 +223,7 @@ const formattedResults = {
 
 
     setScanResults(formattedResults);
-    historyService.saveScan({
+historyService.saveScan({
   id: Date.now(),
   domain: url.replace(/^https?:\/\//, ""),
   date: new Date().toISOString(),
@@ -232,14 +232,14 @@ const formattedResults = {
 
   status:
     formattedResults.overallScore >= 80
-      ? "pass"
-      : formattedResults.overallScore >= 60
-      ? "warn"
-      : "fail",
+      ? "Secure"
+      : formattedResults.overallScore >= 50
+      ? "Needs Improvement"
+      : "Critical",
 
-  critical: formattedResults.checks.filter(
-    check => check.status === "Failed"
-  ).length,
+  checks: formattedResults.checks,
+
+  critical: formattedResults.checks.filter(c => c.status === "Failed").length,
 
   sslStatus:
     formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Passed"
