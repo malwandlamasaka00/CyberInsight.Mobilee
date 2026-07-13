@@ -14,6 +14,10 @@ import OverallScoreCard from './components/OverallScoreCard';
 import QuickActions from './components/QuickActions';
 import RecentScanCard from './components/RecentScanCard';
 import RecentReportsCard from './components/RecentReportsCard';
+import {
+  getIssuesFoundCount,
+  getPassedChecksCount,
+} from "../../utils/scanUtils";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,21 +25,7 @@ const Dashboard = () => {
   useEffect(() => {
   loadDashboard();
 }, []);
-    const getIssuesFoundCount = (scan) => {
-      if (!Array.isArray(scan.checks)) return 0;
 
-      return scan.checks.filter(
-        check => check.status === "fail" || check.status === "warning"
-      ).length;
-    };
-
-    const getPassedChecksCount = (scan) => {
-      if (!Array.isArray(scan.checks)) return 0;
-
-      return scan.checks.filter(
-        check => check.status === "passed"
-      ).length;
-    };
 
     const getScanStatus = (score) => {
       if (score >= 80) return "Secure";
@@ -52,18 +42,39 @@ const loadDashboard = () => {
   const overallScore =
   totalScans > 0
     ? Math.round(
-        history.reduce((sum, scan) => sum + scan.score, 0) / totalScans
+        history.reduce(
+          (sum, scan) => sum + Number(scan.score || 0),
+          0
+        ) / totalScans
       )
     : 0;
 
   const issuesFound = history.reduce(
-    (sum, scan) => sum + getIssuesFoundCount(scan),
-    0
-  );
+  (sum, scan) => sum + getIssuesFoundCount(scan),
+  0
+);
   const passedChecks = history.reduce(
   (sum, scan) => sum + getPassedChecksCount(scan),
   0
+  
+)
+console.log("History:", history);
+
+console.log(
+  history.map(scan => ({
+    score: scan.score,
+    passed: getPassedChecksCount(scan),
+    issues: getIssuesFoundCount(scan)
+  }))
 );
+
+console.log({
+  overallScore,
+  passedChecks,
+  issuesFound
+});
+
+;
 
   const recentScans = history.slice(0, 5).map((scan, index) => ({
   id: index,
@@ -84,7 +95,17 @@ const loadDashboard = () => {
       size: "PDF",
       type: "PDF"
     }));
-
+console.log(
+  history.map(scan => ({
+    domain: scan.domain,
+    ssl: scan.sslStatus,
+    csp: scan.cspStatus,
+    hsts: scan.hstsStatus,
+    spf: scan.spfStatus,
+    ports: scan.portsStatus,
+    issues: getIssuesFoundCount(scan)
+  }))
+);
  setData({
   overallScore,
   scansThisMonth: totalScans,
@@ -179,7 +200,7 @@ const [data, setData] = useState({
           <div className="dashboard-left">
             <OverallScoreCard
               score={data.overallScore}
-              issuesFound={data.issuesFound}
+              criticalIssues={data.issuesFound}
               warnings={0}
               passedChecks={data.passedChecks}
               totalScans={data.scansThisMonth}

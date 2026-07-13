@@ -1,6 +1,7 @@
 // src/pages/history/History.jsx
 import React, { useState, useEffect } from "react";
 import { historyService } from "../../services/historyService";
+import { getIssuesFoundCount } from "../../utils/scanUtils";
 import { 
   Search, 
   Download, 
@@ -86,58 +87,35 @@ const getStatusBadge = (score) => {
 
   // Generate detailed findings for a scan
   const getScanDetails = (scan) => {
-    const findings = [
-      { 
-        label: 'SSL Certificate', 
-        status: scan.sslStatus === 'valid' ? 'pass' : scan.sslStatus === 'expiring' ? 'warn' : 'fail', 
-        detail: scan.sslStatus === 'valid' ? 'Valid · 126 days left' : scan.sslStatus === 'expiring' ? 'Expiring soon · 15 days left' : 'Expired certificate',
-        severity: scan.sslStatus === 'valid' ? 'low' : scan.sslStatus === 'expiring' ? 'medium' : 'high',
-        impact: 'Protects data in transit between browser and server.',
-        recommendation: scan.sslStatus === 'valid' ? 'Certificate is valid and secure' : scan.sslStatus === 'expiring' ? 'Renew certificate within 30 days' : 'Renew SSL certificate immediately'
-      },
-      { 
-        label: 'Content-Security-Policy (CSP)', 
-        status: scan.cspStatus === 'configured' ? 'pass' : scan.cspStatus === 'partial' ? 'warn' : 'fail', 
-        detail: scan.cspStatus === 'configured' ? 'Configured properly' : scan.cspStatus === 'partial' ? 'Partially configured' : 'Missing',
-        severity: scan.cspStatus === 'configured' ? 'low' : scan.cspStatus === 'partial' ? 'medium' : 'high',
-        impact: 'Prevents XSS attacks by controlling resources.',
-        recommendation: scan.cspStatus === 'configured' ? 'CSP is properly configured' : scan.cspStatus === 'partial' ? 'Add missing CSP directives' : 'Implement a Content Security Policy'
-      },
-      { 
-        label: 'HSTS (Strict-Transport-Security)', 
-        status: scan.hstsStatus === 'enabled' ? 'pass' : scan.hstsStatus === 'weak' ? 'warn' : 'fail', 
-        detail: scan.hstsStatus === 'enabled' ? 'Enabled with valid config' : scan.hstsStatus === 'weak' ? 'Configured but weak' : 'Missing',
-        severity: scan.hstsStatus === 'enabled' ? 'low' : scan.hstsStatus === 'weak' ? 'medium' : 'high',
-        impact: 'Forces HTTPS connections to prevent downgrade attacks.',
-        recommendation: scan.hstsStatus === 'enabled' ? 'HSTS is properly configured' : scan.hstsStatus === 'weak' ? 'Increase HSTS max-age' : 'Enable HSTS on your server'
-      },
-      { 
-        label: 'SPF Record', 
-        status: scan.spfStatus === 'configured' ? 'pass' : scan.spfStatus === 'partial' ? 'warn' : 'fail', 
-        detail: scan.spfStatus === 'configured' ? 'Configured with proper records' : scan.spfStatus === 'partial' ? 'Partially configured' : 'Missing',
-        severity: scan.spfStatus === 'configured' ? 'low' : scan.spfStatus === 'partial' ? 'medium' : 'high',
-        impact: 'Prevents email spoofing and protects domain reputation.',
-        recommendation: scan.spfStatus === 'configured' ? 'SPF is properly configured' : scan.spfStatus === 'partial' ? 'Update SPF records' : 'Configure SPF records'
-      },
-      { 
-        label: 'Open Ports', 
-        status: scan.portsStatus === 'secured' ? 'pass' : scan.portsStatus === 'Needs Improvement' ? 'warn' : 'fail', 
-        detail: scan.portsStatus === 'secured' ? 'No unnecessary ports exposed' : scan.portsStatus === 'Needs Improvement' ? 'Some unnecessary ports open' : 'Critical ports exposed',
-        severity: scan.portsStatus === 'secured' ? 'low' : scan.portsStatus === 'Needs Improvement' ? 'medium' : 'high',
-        impact: 'Reduces attack surface and minimizes entry points.',
-        recommendation: scan.portsStatus === 'secured' ? 'All ports are properly secured' : scan.portsStatus === 'Needs Improvement' ? 'Close unnecessary open ports' : 'Immediately close exposed critical ports'
-      },
-    ];
-    return findings;
-  };
+  if (!Array.isArray(scan.checks)) return [];
 
-  const getCriticalIssuesCount = (scan) => {
-  const findings = getScanDetails(scan);
+  return scan.checks.map(check => ({
+    label: check.name,
+    detail: check.details,
+    status:
+      check.status === "Passed"
+        ? "pass"
+        : check.status === "Warning"
+        ? "warn"
+        : "fail",
 
-  return findings.filter(
-    finding => finding.severity === "high"
-  ).length;
+    severity:
+      check.status === "Passed"
+        ? "low"
+        : check.status === "Warning"
+        ? "medium"
+        : "high",
+
+    impact: check.details,
+
+    recommendation:
+      check.status === "Passed"
+        ? "No action required."
+        : "Review and resolve this issue."
+  }));
 };
+
+  const getCriticalIssuesCount = getIssuesFoundCount;
 
   // Handle scan click - opens popup
   const handleScanClick = (scan) => {
