@@ -1,5 +1,6 @@
 // src/pages/dashboard/Dashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { historyService } from '../../services/historyService';
 import { useNavigate } from 'react-router-dom';
 import { 
   Shield, Plus, FileText,
@@ -17,30 +18,85 @@ import RecentReportsCard from './components/RecentReportsCard';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
-  
-  const [data] = useState({
-    overallScore: 78,
-    scansThisMonth: 45,
-    criticalIssues: 3,
-    passedChecks: 12,
-    recentScans: [
-      { id: 1, domain: 'example.com', date: '2026-07-09T14:30:00Z', score: 92, criticalIssues: 0 },
-      { id: 2, domain: 'test-site.org', date: '2026-07-09T12:15:00Z', score: 65, criticalIssues: 2 },
-      { id: 3, domain: 'myapp.io', date: '2026-07-08T18:45:00Z', score: 45, criticalIssues: 4 },
-      { id: 4, domain: 'secure-site.com', date: '2026-07-08T10:00:00Z', score: 88, criticalIssues: 1 }
-    ],
-    recentReports: [
-      { id: 1, domain: 'example.com', generated: '2026-07-09T15:00:00Z', size: '2.4 MB', type: 'PDF' },
-      { id: 2, domain: 'test-site.org', generated: '2026-07-09T12:30:00Z', size: '1.8 MB', type: 'PDF' },
-      { id: 3, domain: 'myapp.io', generated: '2026-07-08T19:00:00Z', size: '3.1 MB', type: 'PDF' }
-    ]
+  useEffect(() => {
+  loadDashboard();
+}, []);
+
+const loadDashboard = () => {
+  const history = historyService.getHistory();
+
+  const totalScans = history.length;
+
+  const overallScore =
+  totalScans > 0
+    ? Math.round(
+        history.reduce((sum, scan) => sum + scan.score, 0) / totalScans
+      )
+    : 0;
+
+  const criticalIssues = history.reduce(
+  (sum, scan) => sum + (scan.critical || 0),
+  0
+);
+
+  const passedChecks = history.reduce((sum, scan) => {
+  let passed = 0;
+
+  if (scan.sslStatus === "valid") passed++;
+  if (scan.cspStatus === "configured") passed++;
+  if (scan.hstsStatus === "enabled") passed++;
+  if (scan.spfStatus === "configured") passed++;
+  if (scan.portsStatus === "secure") passed++;
+
+  return sum + passed;
+}, 0);
+
+  const recentScans = history.slice(0, 5).map((scan, index) => ({
+    id: index,
+    domain: scan.domain || scan.url,
+    date: scan.timestamp || scan.date || new Date().toISOString(),
+    score: scan.score,
+
+criticalIssues: scan.critical || 0
+  }));
+
+  const recentReports = history
+    .filter(scan => scan.reportGenerated)
+    .slice(0, 5)
+    .map((scan, index) => ({
+      id: index,
+      domain: scan.domain || scan.url,
+      generated: scan.timestamp,
+      size: "PDF",
+      type: "PDF"
+    }));
+
+  setData({
+    overallScore,
+    scansThisMonth: totalScans,
+    criticalIssues,
+    passedChecks,
+    recentScans,
+    recentReports
   });
+};
+ const [data, setData] = useState({
+  overallScore: 0,
+  scansThisMonth: 0,
+  criticalIssues: 0,
+  passedChecks: 0,
+  recentScans: [],
+  recentReports: []
+});
 
   return (
     <div className="dashboard-container">
       <ScanModal 
         isOpen={isScanModalOpen} 
-        onClose={() => setIsScanModalOpen(false)} 
+        onClose={() => {
+    setIsScanModalOpen(false);
+    loadDashboard();
+  }} 
       />
 
       <div className="dashboard-content">
@@ -110,10 +166,10 @@ const Dashboard = () => {
             <OverallScoreCard
               score={data.overallScore}
               criticalIssues={data.criticalIssues}
-              warnings={8}
+              warnings={0}
               passedChecks={data.passedChecks}
-              totalScans={127}
-              averageScore={72}
+              totalScans={data.scansThisMonth}
+              averageScore={data.overallScore}
             />
             <QuickActions />
           </div>
