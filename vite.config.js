@@ -22,6 +22,12 @@ export default defineConfig({
 
   server: {
     port: 5173,
-    open: true
+    open: true,
+      proxy: {
+      '/qr': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path, 
+      }}
   }
 });

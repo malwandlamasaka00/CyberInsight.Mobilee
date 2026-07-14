@@ -1,6 +1,8 @@
 // src/pages/scan/Scan.jsx
 import React, { useState } from 'react';
 import { scanService } from '../../services/scanService';
+import QRScanner from '../../components/QRScanner/QRScanner';
+import { QrCode } from 'lucide-react';
 import { historyService } from "../../services/historyService";
 import { 
   Globe, 
@@ -168,6 +170,8 @@ const Scan = () => {
   const [scanProgress, setScanProgress] = useState(0);
   const [scanLogs, setScanLogs] = useState([]);
   const [selectedCheck, setSelectedCheck] = useState(null);
+  const [showCheckModal, setShowCheckModal] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [quickUrls] = useState([
     { label: 'example.com', url: 'https://example.com' },
     { label: 'test-site.org', url: 'https://test-site.org' },
@@ -238,10 +242,8 @@ const Scan = () => {
     };
   };
 
-  const handleScan = async (e) => {
-    e.preventDefault();
-
-    if (!url.trim()) {
+  const performScan = async (targetUrl) => {
+    if (!targetUrl || !targetUrl.trim()) {
       alert("Please enter a website URL");
       return;
     }
@@ -252,7 +254,7 @@ const Scan = () => {
       setScanResults(null);
       setScanLogs([]);
 
-      addLog(`Starting security scan for ${url}`, "info");
+      addLog(`Starting security scan for ${targetUrl}`, "info");
 
       const progressTimer = setInterval(() => {
         setScanProgress(prev => {
@@ -263,7 +265,7 @@ const Scan = () => {
         });
       }, 800);
 
-      const results = await scanService.scan(url);
+      const results = await scanService.scan(targetUrl);
 
       clearInterval(progressTimer);
 
@@ -341,7 +343,7 @@ const Scan = () => {
       
       historyService.saveScan({
         id: Date.now(),
-        domain: url.replace(/^https?:\/\//, ""),
+        domain: targetUrl.replace(/^https?:\/\//, ""),
         date: new Date().toISOString(),
         score: formattedResults.overallScore,
         status:
@@ -391,6 +393,24 @@ const Scan = () => {
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const handleScan = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    const targetUrl = typeof e === 'string' ? e : url;
+    await performScan(targetUrl);
+  };
+
+  // QR Scan Complete Handler
+  const handleQRScanComplete = (decodedUrl) => {
+    setUrl(decodedUrl);
+    setShowQRScanner(false);
+    // Auto-trigger the scan after QR code is decoded
+    setTimeout(() => {
+      performScan(decodedUrl);
+    }, 300);
   };
 
   const getStatusIcon = (status) => {
@@ -470,102 +490,16 @@ const Scan = () => {
         ...definition,
         name: checkName,
         status: scanResults?.checks.find(c => c.name === checkName)?.status || 'Unknown',
-        color: scanResults?.checks.find(c => c.name === checkName)?.color || '#64748b'
+        color: scanResults?.checks.find(c => c.name === checkName)?.color || '#64748b',
+        details: scanResults?.checks.find(c => c.name === checkName)?.details || 'No details available'
       });
+      setShowCheckModal(true);
     }
   };
 
-  const closePopup = () => {
+  const closeModal = () => {
+    setShowCheckModal(false);
     setSelectedCheck(null);
-  };
-
-  const renderPopup = () => {
-    if (!selectedCheck) return null;
-
-    const riskColors = getRiskLevelBadge(selectedCheck.riskLevel);
-
-    return (
-      <div className="scan-popup-overlay" onClick={closePopup}>
-        <div className="scan-popup" onClick={(e) => e.stopPropagation()}>
-          <button className="scan-popup-close" onClick={closePopup}>
-            <X size={24} />
-          </button>
-          
-          <div className="scan-popup-header">
-            <div className="scan-popup-title-wrapper">
-              <div className="scan-popup-title-icon" style={{ backgroundColor: selectedCheck.color + '20' }}>
-                <Shield size={28} style={{ color: selectedCheck.color }} />
-              </div>
-              <div>
-                <h2>{selectedCheck.title}</h2>
-                <div className="scan-popup-status-badge" style={{ 
-                  backgroundColor: selectedCheck.color + '20',
-                  color: selectedCheck.color
-                }}>
-                  Status: {selectedCheck.status}
-                </div>
-              </div>
-            </div>
-            <div className="scan-popup-risk-badge" style={{ 
-              backgroundColor: riskColors.bg,
-              color: riskColors.color
-            }}>
-              <AlertCircle size={16} />
-              <span>{selectedCheck.riskLevel} Risk</span>
-            </div>
-          </div>
-
-          <div className="scan-popup-body">
-            <div className="scan-popup-section">
-              <h3>Description</h3>
-              <p>{selectedCheck.description}</p>
-            </div>
-
-            <div className="scan-popup-section">
-              <h3>What We Check</h3>
-              <ul className="scan-popup-checklist">
-                {selectedCheck.checks.map((check, index) => (
-                  <li key={index}>
-                    <CheckCircle size={16} style={{ color: '#22c55e' }} />
-                    <span>{check}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="scan-popup-section importance-section">
-              <h3>
-                <AlertCircle size={18} style={{ color: '#ef4444' }} />
-                Why It Matters
-              </h3>
-              <p>{selectedCheck.importance}</p>
-            </div>
-
-            <div className="scan-popup-section recommendations-section">
-              <h3>
-                <CheckCircle size={18} style={{ color: '#22c55e' }} />
-                Recommended Actions
-              </h3>
-              <ul className="scan-popup-recommendations">
-                {selectedCheck.recommendations.map((rec, index) => (
-                  <li key={index}>
-                    <span className="recommendation-dot" style={{ backgroundColor: '#22c55e' }}></span>
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="scan-popup-footer">
-            <button className="scan-popup-btn" onClick={closePopup}>
-              <X size={16} />
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -592,7 +526,7 @@ const Scan = () => {
           </div>
           <div className="scan-header-stat cursor-target">
             <FileText size={16} className="stat-icon-green" />
-            <span>QR Code</span>
+            <span>Reports</span>
           </div>
         </div>
       </div>
@@ -619,7 +553,7 @@ const Scan = () => {
             
             <form onSubmit={handleScan} className="scan-form">
               <div className="scan-page-input-group">
-                <Globe size={1} className="scan-page-input-icon" />
+                <Globe size={18} className="scan-page-input-icon" />
                 <input
                   type="url"
                   placeholder="Enter website URL (e.g., https://example.com)"
@@ -629,6 +563,15 @@ const Scan = () => {
                   disabled={isScanning}
                   autoFocus
                 />
+                <button
+                  type="button"
+                  className="scan-qr-btn cursor-target"
+                  onClick={() => setShowQRScanner(true)}
+                  disabled={isScanning}
+                  title="Scan QR Code"
+                >
+                  <QrCode size={18} />
+                </button>
               </div>
               
               <button 
@@ -780,7 +723,17 @@ const Scan = () => {
             <span className="scan-type-desc">Domain information</span>
           </div>
 
-          
+          <div 
+            className="scan-type-item cursor-target" 
+            style={{ borderTopColor: '#ef4444' }}
+            onClick={() => handleCheckClick('Technologies')}
+          >
+            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+              <Code size={24} style={{ color: '#ef4444' }} />
+            </div>
+            <span className="scan-type-text">Technologies</span>
+            <span className="scan-type-desc">Tech stack detection</span>
+          </div>
         </div>
       </div>
 
@@ -891,13 +844,147 @@ const Scan = () => {
               })}
             </div>
           </div>
-
-          
         </div>
       )}
 
-      {/* Popup */}
-      {renderPopup()}
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <QRScanner 
+          onScanComplete={handleQRScanComplete}
+          onClose={() => setShowQRScanner(false)}
+        />
+      )}
+
+      {/* Check Details Modal */}
+      {showCheckModal && selectedCheck && (
+        <div className="scan-modal-overlay" onClick={closeModal}>
+          <div className="scan-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="scan-modal-close" onClick={closeModal}>
+              <X size={24} />
+            </button>
+            
+            <div className="scan-modal-header" style={{ borderBottomColor: selectedCheck.color || '#2563eb' }}>
+              <div className="scan-modal-icon" style={{ backgroundColor: `${selectedCheck.color || '#2563eb'}15` }}>
+                <Shield size={28} style={{ color: selectedCheck.color || '#2563eb' }} />
+              </div>
+              <div>
+                <h2>{selectedCheck.title || selectedCheck.name}</h2>
+                {selectedCheck.status && (
+                  <span className="scan-modal-status" style={{ color: selectedCheck.color }}>
+                    Status: {selectedCheck.status}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="scan-modal-body">
+              {/* Description Section */}
+              <div className="scan-modal-section">
+                <h3>
+                  <Info size={16} />
+                  Description
+                </h3>
+                <p>{selectedCheck.description || 'No description available.'}</p>
+              </div>
+
+              {/* What We Check Section */}
+              {selectedCheck.checks && selectedCheck.checks.length > 0 && (
+                <div className="scan-modal-section">
+                  <h3>
+                    <CheckCircle size={16} />
+                    What We Check
+                  </h3>
+                  <ul className="scan-modal-checklist">
+                    {selectedCheck.checks.map((item, idx) => (
+                      <li key={idx}>
+                        <CheckCircle size={16} style={{ color: '#22c55e' }} />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Why It Matters Section */}
+              <div className="scan-modal-section importance">
+                <h3>
+                  <AlertTriangle size={16} />
+                  Why It Matters
+                </h3>
+                <p>{selectedCheck.importance || 'No importance information available.'}</p>
+              </div>
+
+              {/* Risk Level */}
+              {selectedCheck.riskLevel && (
+                <div className="scan-modal-section risk">
+                  <h3>
+                    <AlertCircle size={16} />
+                    Risk Level
+                  </h3>
+                  <span 
+                    className="scan-modal-risk" 
+                    style={{ 
+                      backgroundColor: 
+                        selectedCheck.riskLevel === 'Critical' ? '#ef444420' :
+                        selectedCheck.riskLevel === 'High' ? '#f9731620' :
+                        selectedCheck.riskLevel === 'Medium' ? '#eab30820' :
+                        '#22c55e20',
+                      color:
+                        selectedCheck.riskLevel === 'Critical' ? '#ef4444' :
+                        selectedCheck.riskLevel === 'High' ? '#f97316' :
+                        selectedCheck.riskLevel === 'Medium' ? '#eab308' :
+                        '#22c55e'
+                    }}
+                  >
+                    {selectedCheck.riskLevel}
+                  </span>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {selectedCheck.recommendations && selectedCheck.recommendations.length > 0 && (
+                <div className="scan-modal-section recommendations">
+                  <h3>
+                    <CheckCircle size={16} />
+                    Recommended Actions
+                  </h3>
+                  <ul className="scan-modal-recommendations">
+                    {selectedCheck.recommendations.map((rec, idx) => (
+                      <li key={idx}>
+                        <span className="recommendation-dot" style={{ backgroundColor: '#22c55e' }}></span>
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Check Result if available */}
+              {selectedCheck.details && (
+                <div className="scan-modal-section result">
+                  <h3>
+                    <Activity size={16} />
+                    Result Details
+                  </h3>
+                  <div className="scan-modal-result">
+                    <p>{selectedCheck.details}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="scan-modal-footer">
+              <button className="scan-modal-btn primary" onClick={closeModal}>
+                <CheckCircle size={16} />
+                Got It
+              </button>
+              <button className="scan-modal-btn secondary" onClick={closeModal}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
