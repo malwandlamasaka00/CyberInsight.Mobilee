@@ -85,34 +85,123 @@ const getStatusBadge = (score) => {
   return <XCircle size={14} className="icon-red" />;
 };
 
-  // Generate detailed findings for a scan
-  const getScanDetails = (scan) => {
+  // Generate detailed findings for a scan with PDF-based recommendations
+const getScanDetails = (scan) => {
   if (!Array.isArray(scan.checks)) return [];
 
-  return scan.checks.map(check => ({
-    label: check.name,
-    detail: check.details,
-    status:
-      check.status === "Passed"
-        ? "pass"
-        : check.status === "Warning"
-        ? "warn"
-        : "fail",
+  return scan.checks.map(check => {
+    const isPassed = check.status === "Passed";
+    const isWarning = check.status === "Warning";
+    const isFailed = check.status === "Failed";
 
-    severity:
-      check.status === "Passed"
-        ? "low"
-        : check.status === "Warning"
-        ? "medium"
-        : "high",
+    // Get recommendation based on check name and status
+    const getRecommendation = (checkName, status) => {
+      const isPass = status === "Passed";
+      const isWarn = status === "Warning";
+      const isFail = status === "Failed";
 
-    impact: check.details,
+      // SSL/TLS Recommendations
+      if (checkName === "SSL/TLS") {
+        if (isPass) return "SSL certificate is valid and secure. No action required.";
+        if (isWarn) return " Certificate expires soon. Renew your SSL certificate within 30 days to maintain secure HTTPS connections.";
+        return " SSL certificate is invalid or expired. Immediately renew your SSL certificate to prevent security warnings and protect user data in transit.";
+      }
 
-    recommendation:
-      check.status === "Passed"
-        ? "No action required."
-        : "Review and resolve this issue."
-  }));
+      // HTTP Security Headers Recommendations
+      if (checkName === "Security Headers") {
+        if (isPass) return "All security headers are properly configured. Your website is well-protected  against web attacks.";
+        if (isWarn) return " Some security headers are missing. Implement headers to improve security.";
+        return " Critical security headers are missing. Implement security headers to prevent MIME sniffing.";
+      }
+
+      // DNS Configuration Recommendations
+      if (checkName === "DNS Configuration") {
+        if (isPass) return "DNS is properly configured. Consider implementing SPF, DKIM, and DMARC for additional email security.";
+        if (isWarn) return " DNS configuration issues detected. Review your A records, MX records, and TXT records. Ensure proper SPF configuration to prevent email spoofing.";
+        return " DNS is misconfigured. Immediately review and correct your DNS records. ";
+      }
+
+      // Network Security Recommendations
+      if (checkName === "Network Security") {
+        if (isPass) return "No open ports detected. Your network is properly secured. Continue monitoring for any changes.";
+        if (isWarn) return " Some unnecessary services are exposed. Review and close unnecessary open ports. Restrict access to essential services only.";
+        return "Critical services are exposed. Immediately close all unnecessary open ports, Unauthorized access could compromise your infrastructure.";
+      }
+
+      // WHOIS Information Recommendations
+      if (checkName === "WHOIS Information") {
+        if (isPass) return "Domain information verified. Keep WHOIS details up to date and consider using WHOIS privacy protection.";
+        if (isWarn) return " Domain registration issues detected. Review your domain registration details and ensure all information is current.";
+        return " Domain information is missing or invalid. Verify domain registration details, keep WHOIS information up to date.";
+      }
+
+     /*// Technology Detection Recommendations
+      if (checkName === "Technologies") {
+        if (isPass) return "No vulnerable technologies detected. Keep all technologies updated to latest versions for continued security.";
+        if (isWarn) return " Outdated technologies found. Update to the latest versions of all technologies. Replace outdated or vulnerable components.";
+        return " Vulnerable technologies detected. Immediately update all technologies to their latest secure versions.";
+      }*/
+
+      // Default recommendation
+      if (isPass) return "Check passed. No action required.";
+      if (isWarn) return " Review and address the issue to improve security.";
+      return " Critical issue. Immediate action required.";
+    };
+
+    // Get impact based on check name and status
+    const getImpact = (checkName, status) => {
+      const isPass = status === "Passed";
+      const isWarn = status === "Warning";
+      const isFail = status === "Failed";
+
+      if (checkName === "SSL/TLS") {
+        if (isPass) return "SSL/TLS encryption protects data in transit between users and your website.";
+        if (isWarn) return "Expiring certificates will soon cause security warnings and potential data exposure.";
+        return "Invalid certificates leave all data transmitted between users and your website vulnerable to interception and attacks.";
+      }
+
+      if (checkName === "Security Headers") {
+        if (isPass) return "Properly configured security headers protect against web attacks.";
+        if (isWarn) return "Missing headers leave your website partially exposed to web-based attacks.";
+        return "Missing security headers leave your website vulnerable to  web threats.";
+      }
+
+      if (checkName === "DNS Configuration") {
+        if (isPass) return "Proper DNS configuration ensures reliable domain resolution and email security.";
+        if (isWarn) return "DNS issues can lead to email delivery problems and potential domain takeover.";
+        return "Misconfigured DNS leaves your domain vulnerable to spoofing, email interception, and potential takeover.";
+      }
+
+      if (checkName === "Network Security") {
+        if (isPass) return "Secure network configuration minimizes attack surface and protects infrastructure.";
+        if (isWarn) return "Exposed services provide additional entry points that attackers could exploit.";
+        return "Open ports and exposed services provide direct entry points for attackers to compromise your infrastructure.";
+      }
+
+      if (checkName === "WHOIS Information") {
+        if (isPass) return "Valid domain information helps establish trust and proper domain management.";
+        if (isWarn) return "Domain registration issues could affect domain ownership verification.";
+        return "Missing or invalid domain information could indicate domain ownership issues or potential fraud.";
+      }
+
+      if (checkName === "Technologies") {
+        if (isPass) return "Up-to-date technologies reduce the risk of known vulnerabilities.";
+        if (isWarn) return "Outdated technologies contain known vulnerabilities that attackers actively exploit.";
+        return "Vulnerable technologies are common entry points for attackers and must be updated immediately.";
+      }
+
+      return isPass ? "Security check passed." : isWarn ? "Security concern detected." : "Critical security issue detected.";
+    };
+
+    return {
+      label: check.name,
+      detail: check.details || "Check completed",
+      status: isPassed ? "pass" : isWarning ? "warn" : "fail",
+      severity: isPassed ? "low" : isWarning ? "medium" : "high",
+      impact: getImpact(check.name, check.status),
+      recommendation: getRecommendation(check.name, check.status)
+    };
+  });
 };
 
   const getCriticalIssuesCount = getIssuesFoundCount;
@@ -790,9 +879,7 @@ const getStatusBadge = (score) => {
             </div>
 
             <div className="popup-footer">
-              <button className="btn-primary" onClick={closePopup}>
-                <CheckCircle size={16} /> Got It
-              </button>
+              
               <button className="btn-secondary" onClick={closePopup}>
                 <X size={16} /> Close
               </button>

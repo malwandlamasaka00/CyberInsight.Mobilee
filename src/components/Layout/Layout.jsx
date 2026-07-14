@@ -75,17 +75,7 @@ const Layout = ({ children }) => {
             </Link>
           </div>
           
-          <div className="nav-section">
-            <span className="nav-section-title">Reports</span>
-            <Link 
-              to="/reports" 
-              className={`nav-item cursor-target ${isActive('/reports') ? 'active' : ''}`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FileText size={20} />
-              <span>Reports</span>
-            </Link>
-          </div>
+          
           
           <div className="nav-section">
             <span className="nav-section-title">Account</span>

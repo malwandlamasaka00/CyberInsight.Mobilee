@@ -45,7 +45,7 @@ const ScanModal = ({ isOpen, onClose }) => {
           sslValid: Math.random() > 0.3,
           headersSecure: Math.random() > 0.3,
           openPorts: Math.floor(Math.random() * 5),
-          technologies: ['React', 'Nginx', 'Cloudflare'],
+          //technologies: ['React', 'Nginx', 'Cloudflare'],
           issues: [
             { type: 'warning', message: 'Missing Content-Security-Policy header' },
             { type: 'info', message: 'SSL certificate expires in 45 days' }

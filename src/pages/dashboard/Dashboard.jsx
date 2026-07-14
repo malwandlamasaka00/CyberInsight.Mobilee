@@ -22,116 +22,81 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
-  useEffect(() => {
-  loadDashboard();
-}, []);
-
-
-    const getScanStatus = (score) => {
-      if (score >= 80) return "Secure";
-      if (score >= 50) return "Needs Improvement";
-      return "Critical";
-    };
-
-
-const loadDashboard = () => {
-  const history = historyService.getHistory();
-
-  const totalScans = history.length;
-
-  const overallScore =
-  totalScans > 0
-    ? Math.round(
-        history.reduce(
-          (sum, scan) => sum + Number(scan.score || 0),
-          0
-        ) / totalScans
-      )
-    : 0;
-
-  const issuesFound = history.reduce(
-  (sum, scan) => sum + getIssuesFoundCount(scan),
-  0
-);
-  const passedChecks = history.reduce(
-  (sum, scan) => sum + getPassedChecksCount(scan),
-  0
   
-)
-console.log("History:", history);
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
-console.log(
-  history.map(scan => ({
-    score: scan.score,
-    passed: getPassedChecksCount(scan),
-    issues: getIssuesFoundCount(scan)
-  }))
-);
+  const getScanStatus = (score) => {
+    if (score >= 80) return "Secure";
+    if (score >= 50) return "Needs Improvement";
+    return "Critical";
+  };
 
-console.log({
-  overallScore,
-  passedChecks,
-  issuesFound
-});
+  const loadDashboard = () => {
+    const history = historyService.getHistory();
 
-;
+    const totalScans = history.length;
 
-  const recentScans = history.slice(0, 5).map((scan, index) => ({
-  id: index,
-  domain: scan.domain || scan.url,
-  date: scan.timestamp || scan.date || new Date().toISOString(),
-  score: scan.score,
-  status: getScanStatus(scan.score),
-  issuesFound: getIssuesFoundCount(scan)
-}));
+    const overallScore = totalScans > 0
+      ? Math.round(history.reduce((sum, scan) => sum + Number(scan.score || 0), 0) / totalScans)
+      : 0;
 
-  const recentReports = history
-    .filter(scan => scan.reportGenerated)
-    .slice(0, 5)
-    .map((scan, index) => ({
+    const issuesFound = history.reduce((sum, scan) => sum + getIssuesFoundCount(scan), 0);
+    const passedChecks = history.reduce((sum, scan) => sum + getPassedChecksCount(scan), 0);
+
+    const recentScans = history.slice(0, 5).map((scan, index) => ({
       id: index,
       domain: scan.domain || scan.url,
-      generated: scan.timestamp,
-      size: "PDF",
-      type: "PDF"
+      date: scan.timestamp || scan.date || new Date().toISOString(),
+      score: scan.score,
+      status: getScanStatus(scan.score),
+      issuesFound: getIssuesFoundCount(scan)
     }));
-console.log(
-  history.map(scan => ({
-    domain: scan.domain,
-    ssl: scan.sslStatus,
-    csp: scan.cspStatus,
-    hsts: scan.hstsStatus,
-    spf: scan.spfStatus,
-    ports: scan.portsStatus,
-    issues: getIssuesFoundCount(scan)
-  }))
-);
- setData({
-  overallScore,
-  scansThisMonth: totalScans,
-  issuesFound,
-  passedChecks,
-  recentScans,
-  recentReports
-});
-};
-const [data, setData] = useState({
-  overallScore: 0,
-  scansThisMonth: 0,
-  issuesFound: 0,
-  passedChecks: 0,
-  recentScans: [],
-  recentReports: []
-});
+
+    const recentReports = history
+      .filter(scan => scan.reportGenerated)
+      .slice(0, 5)
+      .map((scan, index) => ({
+        id: index,
+        domain: scan.domain || scan.url,
+        generated: scan.timestamp,
+        size: "PDF",
+        type: "PDF"
+      }));
+
+    setData({
+      overallScore,
+      scansThisMonth: totalScans,
+      issuesFound,
+      passedChecks,
+      recentScans,
+      recentReports
+    });
+  };
+
+  const [data, setData] = useState({
+    overallScore: 0,
+    scansThisMonth: 0,
+    issuesFound: 0,
+    passedChecks: 0,
+    recentScans: [],
+    recentReports: []
+  });
+
+  // Handle New Scan button click - navigates to History page
+  const handleNewScan = () => {
+    navigate('/scan');
+  };
 
   return (
     <div className="dashboard-container">
       <ScanModal 
         isOpen={isScanModalOpen} 
         onClose={() => {
-    setIsScanModalOpen(false);
-    loadDashboard();
-  }} 
+          setIsScanModalOpen(false);
+          loadDashboard();
+        }} 
       />
 
       <div className="dashboard-content">
@@ -141,13 +106,12 @@ const [data, setData] = useState({
             <p className="dashboard-subtitle">Real-time security intelligence monitoring</p>
           </div>
           <div className="header-actions">
-            <button className="btn-primary cursor-target" onClick={() => setIsScanModalOpen(true)}>
+            <button 
+              className="btn-primary cursor-target" 
+              onClick={handleNewScan}
+            >
               <Plus size={18} />
               New Scan
-            </button>
-            <button className="btn-secondary cursor-target" onClick={() => navigate('/reports')}>
-              <FileText size={18} />
-              Reports
             </button>
           </div>
         </div>

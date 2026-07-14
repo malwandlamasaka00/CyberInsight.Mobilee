@@ -592,7 +592,7 @@ const Scan = () => {
           </div>
           <div className="scan-header-stat cursor-target">
             <FileText size={16} className="stat-icon-green" />
-            <span>Reports</span>
+            <span>QR Code</span>
           </div>
         </div>
       </div>
@@ -619,7 +619,7 @@ const Scan = () => {
             
             <form onSubmit={handleScan} className="scan-form">
               <div className="scan-page-input-group">
-                <Globe size={18} className="scan-page-input-icon" />
+                <Globe size={1} className="scan-page-input-icon" />
                 <input
                   type="url"
                   placeholder="Enter website URL (e.g., https://example.com)"
@@ -780,17 +780,7 @@ const Scan = () => {
             <span className="scan-type-desc">Domain information</span>
           </div>
 
-          <div 
-            className="scan-type-item cursor-target" 
-            style={{ borderTopColor: '#ef4444' }}
-            onClick={() => handleCheckClick('Technologies')}
-          >
-            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
-              <Code size={24} style={{ color: '#ef4444' }} />
-            </div>
-            <span className="scan-type-text">Technologies</span>
-            <span className="scan-type-desc">Tech stack detection</span>
-          </div>
+          
         </div>
       </div>
 
@@ -902,20 +892,7 @@ const Scan = () => {
             </div>
           </div>
 
-          <div className="scan-results-actions">
-            <button className="scan-action-btn primary cursor-target">
-              <FileText size={16} />
-              Generate Report
-            </button>
-            <button className="scan-action-btn secondary cursor-target">
-              <Download size={16} />
-              Export PDF
-            </button>
-            <button className="scan-action-btn secondary cursor-target">
-              <Eye size={16} />
-              View Details
-            </button>
-          </div>
+          
         </div>
       )}
 

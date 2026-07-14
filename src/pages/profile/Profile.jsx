@@ -1,4 +1,4 @@
-// src/pages/dashboard/profile/Profile.jsx
+// src/pages/profile/Profile.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   User, 
@@ -25,9 +25,13 @@ import {
   Trash2,
   Eye
 } from 'lucide-react';
+import { historyService } from '../../services/historyService';
+import { authService } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import './Profile.css';
 
-const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
+const Profile = ({ onLogout, onSelectScan }) => {
+  const { isAuthenticated } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedScan, setSelectedScan] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
@@ -40,6 +44,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
   const [stream, setStream] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [scanHistory, setScanHistory] = useState([]);
+  const [userData, setUserData] = useState(null);
   
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -47,85 +53,98 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
   const menuRef = useRef(null);
 
   const [profile, setProfile] = useState({
-    name: user?.name || 'Demo User',
-    email: user?.email || 'demo@cyberinsight.com',
+    name: '',
+    email: '',
     role: 'Security Administrator',
     phone: '+1 (555) 123-4567',
-    joined: user?.memberSince || 'Jan 2026',
-    lastActive: new Date().toLocaleString()
+    joined: '',
+    lastActive: ''
   });
 
-  const userData = user || {
-    name: 'Demo User',
-    email: 'demo@cyberinsight.com',
-    memberSince: 'Jan 2026',
-  };
-
-  // Use the scanHistory from props or default data
-  const scans = scanHistory && scanHistory.length > 0 ? scanHistory : [
-    { id: 1, url: 'example.com', date: 'Today 14:32', score: 92, status: 'pass' },
-    { id: 2, url: 'myapp.dev', date: 'Yesterday 09:15', score: 76, status: 'warn' },
-    { id: 3, url: 'api.secure.co', date: 'Jul 7, 2026', score: 88, status: 'pass' },
-    { id: 4, url: 'testsite.io', date: 'Jul 5, 2026', score: 65, status: 'warn' },
-    { id: 5, url: 'securebank.com', date: 'Jul 3, 2026', score: 95, status: 'pass' },
-  ];
-
-  // ===== TOAST NOTIFICATION - TOP RIGHT =====
-  const showToast = (message, type = 'success') => {
-    // Remove existing toasts
-    const existingToasts = document.querySelectorAll('.toast-notification');
-    existingToasts.forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    
-    const icons = {
-      success: '✅',
-      error: '❌',
-      info: 'ℹ️'
-    };
-    
-    toast.innerHTML = `
-      <span style="font-size: 20px;">${icons[type] || icons.success}</span>
-      <span>${message}</span>
-      <button class="toast-close" onclick="this.closest('.toast-notification').remove()">
-        ✕
-      </button>
-    `;
-    
-    document.body.appendChild(toast);
-
-    // Auto dismiss after 4 seconds
-    setTimeout(() => {
-      if (document.body.contains(toast)) {
-        toast.style.animation = 'slideOutToast 0.3s ease forwards';
-        setTimeout(() => {
-          if (document.body.contains(toast)) {
-            document.body.removeChild(toast);
-          }
-        }, 300);
+  // Load user data from authService
+  const loadUserData = () => {
+    try {
+      // Get user from authService
+      const user = authService.getCurrentUser();
+      if (user) {
+        setUserData(user);
+        
+        // Handle both field name formats
+        const firstName = user.first_name || user.name || '';
+        const lastName = user.last_name || user.surname || '';
+        const fullName = firstName && lastName 
+          ? `${firstName} ${lastName}` 
+          : firstName || lastName || user.email?.split('@')[0] || 'User';
+        
+        setProfile({
+          name: fullName,
+          email: user.email || 'user@example.com',
+          role: user.role || 'Security Administrator',
+          phone: user.phone || '+1 (555) 123-4567',
+          joined: user.memberSince || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          lastActive: new Date().toLocaleString()
+        });
+      } else {
+        // Fallback to localStorage
+        const userData = localStorage.getItem('sentinel_user');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          setUserData(parsedUser);
+          const firstName = parsedUser.first_name || parsedUser.name || '';
+          const lastName = parsedUser.last_name || parsedUser.surname || '';
+          const fullName = firstName && lastName 
+            ? `${firstName} ${lastName}` 
+            : firstName || lastName || parsedUser.email?.split('@')[0] || 'User';
+          
+          setProfile({
+            name: fullName,
+            email: parsedUser.email || 'user@example.com',
+            role: parsedUser.role || 'Security Administrator',
+            phone: parsedUser.phone || '+1 (555) 123-4567',
+            joined: parsedUser.memberSince || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+            lastActive: new Date().toLocaleString()
+          });
+        }
       }
-    }, 4000);
-  };
-
-  // ===== CUSTOM CONFIRM MODAL =====
-  const showConfirmModalDialog = (message, onConfirm) => {
-    setConfirmAction(() => onConfirm);
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirm = () => {
-    if (confirmAction) {
-      confirmAction();
+    } catch (e) {
+      console.error('Error loading user data:', e);
     }
-    setShowConfirmModal(false);
-    setConfirmAction(null);
   };
 
-  const handleCancelConfirm = () => {
-    setShowConfirmModal(false);
-    setConfirmAction(null);
-  };
+  // Load user data on mount and when auth changes
+  useEffect(() => {
+    loadUserData();
+  }, [isAuthenticated]);
+
+  // Load scan history from history service
+  useEffect(() => {
+    const loadHistory = () => {
+      try {
+        const history = historyService.getHistory();
+        if (history && history.length > 0) {
+          setScanHistory(history);
+        } else {
+          setScanHistory([]);
+        }
+      } catch (e) {
+        console.error('Error loading history:', e);
+        setScanHistory([]);
+      }
+    };
+
+    loadHistory();
+
+    // Listen for history updates
+    const handleHistoryUpdate = () => {
+      loadHistory();
+    };
+
+    window.addEventListener('scanHistoryUpdated', handleHistoryUpdate);
+    
+    return () => {
+      window.removeEventListener('scanHistoryUpdated', handleHistoryUpdate);
+    };
+  }, []);
 
   // Load saved image on mount
   useEffect(() => {
@@ -164,6 +183,61 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
     }
   }, [showCameraModal, capturedPhoto]);
 
+  // ===== TOAST NOTIFICATION =====
+  const showToast = (message, type = 'success') => {
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    const icons = {
+      success: '✅',
+      error: '❌',
+      info: 'ℹ️'
+    };
+    
+    toast.innerHTML = `
+      <span style="font-size: 20px;">${icons[type] || icons.success}</span>
+      <span>${message}</span>
+      <button class="toast-close" onclick="this.closest('.toast-notification').remove()">
+        ✕
+      </button>
+    `;
+    
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        toast.style.animation = 'slideOutToast 0.3s ease forwards';
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }
+    }, 4000);
+  };
+
+  // ===== CUSTOM CONFIRM MODAL =====
+  const showConfirmModalDialog = (message, onConfirm) => {
+    setConfirmAction(() => onConfirm);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      confirmAction();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
@@ -171,20 +245,54 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
 
   const handleSave = () => {
     setIsEditing(false);
-    localStorage.setItem('profileData', JSON.stringify(profile));
-    showToast(' Profile updated successfully!', 'success');
+    try {
+      // Get existing user data
+      let existingUser = authService.getCurrentUser();
+      if (!existingUser) {
+        const stored = localStorage.getItem('sentinel_user');
+        if (stored) {
+          existingUser = JSON.parse(stored);
+        }
+      }
+      
+      if (existingUser) {
+        // Split the full name into first and last name
+        const nameParts = profile.name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        const updatedUser = { 
+          ...existingUser, 
+          first_name: firstName,
+          last_name: lastName,
+          name: firstName,
+          surname: lastName,
+          phone: profile.phone,
+          email: profile.email
+        };
+        
+        // Update in authService
+        if (authService.updateUser) {
+          authService.updateUser(updatedUser);
+        }
+        
+        // Update in localStorage
+        localStorage.setItem('sentinel_user', JSON.stringify(updatedUser));
+        setUserData(updatedUser);
+      }
+      
+      localStorage.setItem('profileData', JSON.stringify(profile));
+      showToast('Profile updated successfully!', 'success');
+    } catch (e) {
+      console.error('Error saving user data:', e);
+      showToast('Error saving profile', 'error');
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setProfile({
-      name: user?.name || 'Demo User',
-      email: user?.email || 'demo@cyberinsight.com',
-      role: 'Security Administrator',
-      phone: '+1 (555) 123-4567',
-      joined: user?.memberSince || 'Jan 2026',
-      lastActive: new Date().toLocaleString()
-    });
+    // Reload user data
+    loadUserData();
     showToast('📝 Changes cancelled', 'info');
   };
 
@@ -219,7 +327,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
         localStorage.setItem('profileImage', reader.result);
         setIsUploading(false);
         setShowMenu(false);
-        showToast(' Profile picture uploaded successfully!', 'success');
+        showToast('Profile picture uploaded successfully!', 'success');
         window.dispatchEvent(
           new CustomEvent('profilePictureUpdated', {
             detail: {
@@ -314,7 +422,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
       setProfileImage(capturedPhoto);
       localStorage.setItem('profileImage', capturedPhoto);
       closeCamera();
-      showToast(' Profile picture saved successfully!', 'success');
+      showToast('Profile picture saved successfully!', 'success');
       window.dispatchEvent(
         new CustomEvent('profilePictureUpdated', {
           detail: {
@@ -385,13 +493,220 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
     document.body.style.overflow = 'auto';
   };
 
+  // ===== GET SCAN DETAILS WITH RECOMMENDATIONS (FROM HISTORY) =====
+  const getScanDetails = (scan) => {
+    // If scan has checks array, use it
+    if (scan.checks && Array.isArray(scan.checks) && scan.checks.length > 0) {
+      return scan.checks.map(check => {
+        const isPassed = check.status === "Passed";
+        const isWarning = check.status === "Warning";
+        const isFailed = check.status === "Failed";
+
+        // Get recommendation based on check name and status
+        const getRecommendation = (checkName, status) => {
+          const isPass = status === "Passed";
+          const isWarn = status === "Warning";
+          const isFail = status === "Failed";
+
+          // SSL/TLS Recommendations
+          if (checkName === "SSL/TLS") {
+            if (isPass) return "SSL certificate is valid and secure. No action required.";
+            if (isWarn) return "⚠️ Certificate expires soon. Renew your SSL certificate within 30 days to maintain secure HTTPS connections.";
+            return "🚨 SSL certificate is invalid or expired. Immediately renew your SSL certificate to prevent security warnings and protect user data in transit.";
+          }
+
+          // HTTP Security Headers Recommendations
+          if (checkName === "Security Headers") {
+            if (isPass) return "All security headers are properly configured. Your website is well-protected against web attacks.";
+            if (isWarn) return "⚠️ Some security headers are missing. Implement Content-Security-Policy (CSP), HSTS, X-Frame-Options, and X-Content-Type-Options headers to improve security.";
+            return "🚨 Critical security headers are missing. Implement Content-Security-Policy to prevent XSS attacks, enable HSTS to enforce HTTPS, set X-Frame-Options to prevent clickjacking, and configure X-Content-Type-Options to prevent MIME sniffing.";
+          }
+
+          // DNS Configuration Recommendations
+          if (checkName === "DNS Configuration") {
+            if (isPass) return "DNS is properly configured. Consider implementing SPF, DKIM, and DMARC for additional email security.";
+            if (isWarn) return "⚠️ DNS configuration issues detected. Review your A records, MX records, and TXT records. Ensure proper SPF configuration to prevent email spoofing.";
+            return "🚨 DNS is misconfigured. Immediately review and correct your DNS records. Configure SPF records to prevent email spoofing, implement DKIM for email authentication, and set up DMARC policies for email protection.";
+          }
+
+          // Network Security Recommendations
+          if (checkName === "Network Security") {
+            if (isPass) return "No open ports detected. Your network is properly secured. Continue monitoring for any changes.";
+            if (isWarn) return "⚠️ Some unnecessary services are exposed. Review and close unnecessary open ports. Restrict access to essential services only.";
+            return "🚨 Critical services are exposed. Immediately close all unnecessary open ports. Implement firewalls to filter traffic and regularly audit network configurations. Unauthorized access could compromise your infrastructure.";
+          }
+
+          // WHOIS Information Recommendations
+          if (checkName === "WHOIS Information") {
+            if (isPass) return "Domain information verified. Keep WHOIS details up to date and consider using WHOIS privacy protection.";
+            if (isWarn) return "⚠️ Domain registration issues detected. Review your domain registration details and ensure all information is current.";
+            return "🚨 Domain information is missing or invalid. Verify domain registration details, keep WHOIS information up to date, monitor domain expiration dates, and use WHOIS privacy protection.";
+          }
+
+          // Technology Detection Recommendations
+          if (checkName === "Technologies") {
+            if (isPass) return "No vulnerable technologies detected. Keep all technologies updated to latest versions for continued security.";
+            if (isWarn) return "⚠️ Outdated technologies found. Update to the latest versions of all technologies. Replace outdated or vulnerable components.";
+            return "🚨 Vulnerable technologies detected. Immediately update all technologies to their latest secure versions. Review your entire technology stack for known vulnerabilities and replace any insecure components.";
+          }
+
+          // Default recommendation
+          if (isPass) return "Check passed. No action required.";
+          if (isWarn) return "⚠️ Review and address the issue to improve security.";
+          return "🚨 Critical issue. Immediate action required.";
+        };
+
+        // Get impact based on check name and status
+        const getImpact = (checkName, status) => {
+          const isPass = status === "Passed";
+          const isWarn = status === "Warning";
+          const isFail = status === "Failed";
+
+          if (checkName === "SSL/TLS") {
+            if (isPass) return "SSL/TLS encryption protects data in transit between users and your website.";
+            if (isWarn) return "Expiring certificates will soon cause security warnings and potential data exposure.";
+            return "Invalid certificates leave all data transmitted between users and your website vulnerable to interception and attacks.";
+          }
+
+          if (checkName === "Security Headers") {
+            if (isPass) return "Properly configured security headers protect against XSS, clickjacking, MIME sniffing, and other web attacks.";
+            if (isWarn) return "Missing headers leave your website partially exposed to web-based attacks.";
+            return "Missing security headers leave your website vulnerable to XSS attacks, clickjacking, and other common web threats.";
+          }
+
+          if (checkName === "DNS Configuration") {
+            if (isPass) return "Proper DNS configuration ensures reliable domain resolution and email security.";
+            if (isWarn) return "DNS issues can lead to email delivery problems and potential domain takeover.";
+            return "Misconfigured DNS leaves your domain vulnerable to spoofing, email interception, and potential takeover.";
+          }
+
+          if (checkName === "Network Security") {
+            if (isPass) return "Secure network configuration minimizes attack surface and protects infrastructure.";
+            if (isWarn) return "Exposed services provide additional entry points that attackers could exploit.";
+            return "Open ports and exposed services provide direct entry points for attackers to compromise your infrastructure.";
+          }
+
+          if (checkName === "WHOIS Information") {
+            if (isPass) return "Valid domain information helps establish trust and proper domain management.";
+            if (isWarn) return "Domain registration issues could affect domain ownership verification.";
+            return "Missing or invalid domain information could indicate domain ownership issues or potential fraud.";
+          }
+
+          if (checkName === "Technologies") {
+            if (isPass) return "Up-to-date technologies reduce the risk of known vulnerabilities.";
+            if (isWarn) return "Outdated technologies contain known vulnerabilities that attackers actively exploit.";
+            return "Vulnerable technologies are common entry points for attackers and must be updated immediately.";
+          }
+
+          return isPass ? "Security check passed." : isWarn ? "⚠️ Security concern detected." : "🚨 Critical security issue detected.";
+        };
+
+        return {
+          label: check.name,
+          detail: check.details || "Check completed",
+          status: isPassed ? "pass" : isWarning ? "warn" : "fail",
+          severity: isPassed ? "low" : isWarning ? "medium" : "high",
+          impact: getImpact(check.name, check.status),
+          recommendation: getRecommendation(check.name, check.status)
+        };
+      });
+    }
+
+    // Fallback: Generate findings from scan status data
+    const score = scan.score || 0;
+    const findings = [];
+    
+    // SSL/TLS
+    let sslStatus = 'pass';
+    let sslDetail = 'Valid certificate';
+    if (scan.sslStatus === 'expired') { sslStatus = 'fail'; sslDetail = 'Certificate expired'; }
+    else if (scan.sslStatus === 'expiring') { sslStatus = 'warn'; sslDetail = 'Certificate expires soon'; }
+    
+    findings.push({
+      label: 'SSL/TLS',
+      detail: sslDetail,
+      status: sslStatus,
+      severity: sslStatus === 'pass' ? 'low' : sslStatus === 'warn' ? 'medium' : 'high',
+      impact: sslStatus === 'pass' ? 'SSL/TLS encryption protects data in transit.' : 
+               sslStatus === 'warn' ? 'Expiring certificates will soon cause security warnings.' : 
+               'Invalid certificates leave data vulnerable to interception.',
+      recommendation: sslStatus === 'pass' ? 'Certificate is valid and secure.' : 
+                      sslStatus === 'warn' ? '⚠️ Renew certificate within 30 days.' : 
+                      '🚨 Renew SSL certificate immediately.'
+    });
+
+    // Security Headers
+    let headerStatus = 'pass';
+    let headerDetail = 'All headers present';
+    if (scan.cspStatus === 'missing' || scan.hstsStatus === 'missing') { 
+      headerStatus = 'fail'; 
+      headerDetail = 'Critical headers missing'; 
+    } else if (scan.cspStatus === 'partial' || scan.hstsStatus === 'weak') { 
+      headerStatus = 'warn'; 
+      headerDetail = 'Some headers missing or weak'; 
+    }
+    
+    findings.push({
+      label: 'Security Headers',
+      detail: headerDetail,
+      status: headerStatus,
+      severity: headerStatus === 'pass' ? 'low' : headerStatus === 'warn' ? 'medium' : 'high',
+      impact: headerStatus === 'pass' ? 'Headers protect against web attacks.' : 
+               headerStatus === 'warn' ? 'Missing headers expose website to attacks.' : 
+               'Critical headers missing - website vulnerable to XSS and clickjacking.',
+      recommendation: headerStatus === 'pass' ? 'Headers are properly configured.' : 
+                      headerStatus === 'warn' ? '⚠️ Add missing security headers.' : 
+                      '🚨 Implement Content-Security-Policy, HSTS, X-Frame-Options, and X-Content-Type-Options.'
+    });
+
+    // DNS Configuration
+    let dnsStatus = 'pass';
+    let dnsDetail = 'Properly configured';
+    if (scan.spfStatus === 'missing') { dnsStatus = 'fail'; dnsDetail = 'SPF missing'; }
+    else if (scan.spfStatus === 'partial') { dnsStatus = 'warn'; dnsDetail = 'SPF partially configured'; }
+    
+    findings.push({
+      label: 'DNS Configuration',
+      detail: dnsDetail,
+      status: dnsStatus,
+      severity: dnsStatus === 'pass' ? 'low' : dnsStatus === 'warn' ? 'medium' : 'high',
+      impact: dnsStatus === 'pass' ? 'Proper DNS ensures email security.' : 
+               dnsStatus === 'warn' ? 'DNS issues could lead to email problems.' : 
+               'Misconfigured DNS leaves domain vulnerable to spoofing.',
+      recommendation: dnsStatus === 'pass' ? 'DNS is properly configured.' : 
+                      dnsStatus === 'warn' ? '⚠️ Fix DNS configuration issues.' : 
+                      '🚨 Reconfigure DNS records and set up SPF, DKIM, DMARC.'
+    });
+
+    // Network Security
+    let netStatus = 'pass';
+    let netDetail = 'No open ports';
+    if (scan.portsStatus === 'exposed') { netStatus = 'fail'; netDetail = 'Critical ports exposed'; }
+    else if (scan.portsStatus === 'warning') { netStatus = 'warn'; netDetail = 'Some services exposed'; }
+    
+    findings.push({
+      label: 'Network Security',
+      detail: netDetail,
+      status: netStatus,
+      severity: netStatus === 'pass' ? 'low' : netStatus === 'warn' ? 'medium' : 'high',
+      impact: netStatus === 'pass' ? 'Network minimizes attack surface.' : 
+               netStatus === 'warn' ? 'Exposed services provide attack entry points.' : 
+               'Open ports provide direct entry for attackers.',
+      recommendation: netStatus === 'pass' ? 'All ports are properly secured.' : 
+                      netStatus === 'warn' ? '⚠️ Close unnecessary open ports.' : 
+                      '🚨 Immediately close exposed critical ports.'
+    });
+
+    return findings;
+  };
+
   // ===== STATS =====
 
-  const totalScans = scans.length;
-  const avgScore = totalScans > 0 ? Math.round(scans.reduce((acc, curr) => acc + curr.score, 0) / totalScans) : 0;
-  const passedScans = scans.filter(s => s.status === 'pass').length;
-  const failedScans = scans.filter(s => s.status === 'fail').length;
-  const warnScans = scans.filter(s => s.status === 'warn').length;
+  const totalScans = scanHistory.length;
+  const avgScore = totalScans > 0 ? Math.round(scanHistory.reduce((acc, curr) => acc + (curr.score || 0), 0) / totalScans) : 0;
+  const passedScans = scanHistory.filter(s => s.status === 'Secure' || s.status === 'Passed').length;
+  const failedScans = scanHistory.filter(s => s.status === 'Critical' || s.status === 'Failed').length;
+  const warnScans = scanHistory.filter(s => s.status === 'Needs Improvement' || s.status === 'Warning').length;
 
   const getScoreClass = (score) => {
     if (score >= 80) return 'score-high';
@@ -400,67 +715,33 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
   };
 
   const getStatusIcon = (status) => {
-    switch(status) {
-      case 'pass': return <CheckCircle size={16} style={{ color: '#43e97b' }} />;
-      case 'warn': return <AlertTriangle size={16} style={{ color: '#fdcb6e' }} />;
-      case 'fail': return <XCircle size={16} style={{ color: '#f5576c' }} />;
-      default: return null;
+    const statusLower = String(status).toLowerCase();
+    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') {
+      return <CheckCircle size={16} style={{ color: '#43e97b' }} />;
     }
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') {
+      return <AlertTriangle size={16} style={{ color: '#fdcb6e' }} />;
+    }
+    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') {
+      return <XCircle size={16} style={{ color: '#f5576c' }} />;
+    }
+    return <Shield size={16} style={{ color: '#94a3b8' }} />;
   };
 
   const getStatusLabel = (status) => {
-    switch(status) {
-      case 'pass': return 'Secure';
-      case 'warn': return 'Warning';
-      case 'fail': return 'Critical';
-      default: return '';
-    }
+    const statusLower = String(status).toLowerCase();
+    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') return 'Secure';
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'Warning';
+    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') return 'Critical';
+    return status;
   };
 
-  const getScanDetails = (scan) => {
-    const findings = [
-      { 
-        label: 'SSL Certificate', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Valid · 126 days left' : scan.score >= 60 ? 'Expiring soon · 15 days left' : 'Expired certificate',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Protects data in transit between browser and server.',
-        recommendation: scan.score >= 80 ? 'Certificate is valid and secure' : scan.score >= 60 ? 'Renew certificate within 30 days' : 'Renew SSL certificate immediately'
-      },
-      { 
-        label: 'Content-Security-Policy (CSP)', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Configured properly' : scan.score >= 60 ? 'Partially configured' : 'Missing',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Prevents XSS attacks by controlling resources.',
-        recommendation: scan.score >= 80 ? 'CSP is properly configured' : scan.score >= 60 ? 'Add missing CSP directives' : 'Implement a Content Security Policy'
-      },
-      { 
-        label: 'HSTS (Strict-Transport-Security)', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Enabled with valid config' : scan.score >= 60 ? 'Configured but weak' : 'Missing',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Forces HTTPS connections to prevent downgrade attacks.',
-        recommendation: scan.score >= 80 ? 'HSTS is properly configured' : scan.score >= 60 ? 'Increase HSTS max-age' : 'Enable HSTS on your server'
-      },
-      { 
-        label: 'SPF Record', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'Configured with proper records' : scan.score >= 60 ? 'Partially configured' : 'Missing',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Prevents email spoofing and protects domain reputation.',
-        recommendation: scan.score >= 80 ? 'SPF is properly configured' : scan.score >= 60 ? 'Update SPF records' : 'Configure SPF records'
-      },
-      { 
-        label: 'Open Ports', 
-        status: scan.score >= 80 ? 'pass' : scan.score >= 60 ? 'warn' : 'fail', 
-        detail: scan.score >= 80 ? 'No unnecessary ports exposed' : scan.score >= 60 ? 'Some unnecessary ports open' : 'Critical ports exposed',
-        severity: scan.score >= 80 ? 'low' : scan.score >= 60 ? 'medium' : 'high',
-        impact: 'Reduces attack surface and minimizes entry points.',
-        recommendation: scan.score >= 80 ? 'All ports are properly secured' : scan.score >= 60 ? 'Close unnecessary open ports' : 'Immediately close exposed critical ports'
-      },
-    ];
-    return findings;
+  const getStatusClass = (status) => {
+    const statusLower = String(status).toLowerCase();
+    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') return 'pass';
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'warn';
+    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') return 'fail';
+    return 'warn';
   };
 
   return (
@@ -737,8 +1018,8 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
           <span className="scan-count-badge">{totalScans} scans</span>
         </div>
         <div className="profile-scans-list">
-          {scans.length > 0 ? (
-            scans.map((scan) => (
+          {scanHistory.length > 0 ? (
+            scanHistory.map((scan) => (
               <div 
                 key={scan.id} 
                 className="profile-scan-item clickable"
@@ -750,18 +1031,18 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
                     {getStatusIcon(scan.status)}
                   </span>
                   <div className="scan-item-info">
-                    <span className="scan-url">{scan.url}</span>
-                    <span className="scan-date">{scan.date}</span>
+                    <span className="scan-url">{scan.domain || scan.url || 'Unknown'}</span>
+                    <span className="scan-date">{scan.date ? new Date(scan.date).toLocaleString() : 'Unknown date'}</span>
                   </div>
                 </div>
                 <div className="scan-item-right">
-                  <span className={`scan-score ${getScoreClass(scan.score)}`}>
-                    {scan.score}
+                  <span className={`scan-score ${getScoreClass(scan.score || 0)}`}>
+                    {scan.score || 0}
                   </span>
                   <span className="scan-status-badge">
-                    {scan.status === 'pass' && <span className="badge-pass">Secure</span>}
-                    {scan.status === 'warn' && <span className="badge-warn">Warning</span>}
-                    {scan.status === 'fail' && <span className="badge-fail">Critical</span>}
+                    <span className={`badge-${getStatusClass(scan.status)}`}>
+                      {getStatusLabel(scan.status)}
+                    </span>
                   </span>
                   <span className="scan-view-icon">
                     <ChevronRight size={14} />
@@ -773,6 +1054,7 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
             <div className="profile-scans-empty">
               <Globe size={40} />
               <p>No scans performed yet</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Run a security scan to see results here</p>
             </div>
           )}
         </div>
@@ -913,31 +1195,29 @@ const Profile = ({ user, onLogout, scanHistory = [], onSelectScan }) => {
             
             <div className="popup-header">
               <div className="popup-icon" style={{ 
-                background: selectedScan.score >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' : 
-                           selectedScan.score >= 60 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' : 
+                background: (selectedScan.score || 0) >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' : 
+                           (selectedScan.score || 0) >= 60 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' : 
                            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
               }}>
                 <Shield size={28} />
               </div>
               <div className="popup-title">
-                <h2>{selectedScan.url}</h2>
-                <span className="popup-date"><Calendar size={14} /> {selectedScan.date}</span>
+                <h2>{selectedScan.domain || selectedScan.url || 'Unknown'}</h2>
+                <span className="popup-date"><Calendar size={14} /> {selectedScan.date ? new Date(selectedScan.date).toLocaleString() : 'Unknown date'}</span>
               </div>
             </div>
 
             <div className="popup-score-section">
               <div className="popup-score-circle" style={{ 
-                borderColor: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 60 ? '#fdcb6e' : '#f5576c',
-                color: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 60 ? '#fdcb6e' : '#f5576c'
+                borderColor: (selectedScan.score || 0) >= 80 ? '#43e97b' : (selectedScan.score || 0) >= 60 ? '#fdcb6e' : '#f5576c',
+                color: (selectedScan.score || 0) >= 80 ? '#43e97b' : (selectedScan.score || 0) >= 60 ? '#fdcb6e' : '#f5576c'
               }}>
-                {selectedScan.score}
+                {selectedScan.score || 0}
               </div>
               <div className="popup-score-info">
-                <h3>Security Score: {selectedScan.score >= 80 ? 'Good' : selectedScan.score >= 60 ? 'Fair' : 'Poor'}</h3>
-                <p>Status: <span className={`status-badge ${selectedScan.status}`}>
-                  {selectedScan.status === 'pass' && '✅ Secure'}
-                  {selectedScan.status === 'warn' && '⚠️ Warning'}
-                  {selectedScan.status === 'fail' && '❌ Critical'}
+                <h3>Security Score: {(selectedScan.score || 0) >= 80 ? 'Good' : (selectedScan.score || 0) >= 60 ? 'Fair' : 'Poor'}</h3>
+                <p>Status: <span className={`status-badge ${getStatusClass(selectedScan.status)}`}>
+                  {getStatusLabel(selectedScan.status)}
                 </span></p>
               </div>
             </div>

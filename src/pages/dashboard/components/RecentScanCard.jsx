@@ -202,16 +202,7 @@ const getScoreLabel = (score) => {
                 </div>
               </div>
 
-              <div className="scan-modal-actions">
-                <button className="scan-modal-action-btn primary cursor-target">
-                  <FileText size={16} />
-                  View Full Report
-                </button>
-                <button className="scan-modal-action-btn secondary cursor-target">
-                  <Download size={16} />
-                  Download PDF
-                </button>
-              </div>
+             
             </div>
           </div>
         </div>
