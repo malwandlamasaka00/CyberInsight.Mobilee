@@ -57,7 +57,8 @@ const getSecurityStatus = (score, rating) => {
 
 export const scanService = {
   async scan(url) {
-    try {
+    try { 
+      console.log("URL SENT TO API:", url);
       const response = await api.post("/scans/", {
         url,
       });

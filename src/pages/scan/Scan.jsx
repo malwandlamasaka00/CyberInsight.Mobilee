@@ -4,11 +4,11 @@ import { scanService } from '../../services/scanService';
 import QRScanner from '../../components/QRScanner/QRScanner';
 import { QrCode } from 'lucide-react';
 import { historyService } from "../../services/historyService";
-import { 
-  Globe, 
-  Shield, 
-  Zap, 
-  Lock, 
+import {
+  Globe,
+  Shield,
+  Zap,
+  Lock,
   Server,
   ArrowRight,
   AlertCircle,
@@ -172,11 +172,23 @@ const Scan = () => {
   const [selectedCheck, setSelectedCheck] = useState(null);
   const [showCheckModal, setShowCheckModal] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
+
+
   const [quickUrls] = useState([
-    { label: 'example.com', url: 'https://example.com' },
-    { label: 'test-site.org', url: 'https://test-site.org' },
-    { label: 'secure-app.io', url: 'https://secure-app.io' }
+    {
+      label: "example.com",
+      url: "https://example.com"
+    },
+    {
+      label: "test-site.org",
+      url: "https://test-site.org"
+    },
+    {
+      label: "secure-app.io",
+      url: "https://secure-app.io"
+    }
   ]);
+
 
   const addLog = (message, type = 'info') => {
     setScanLogs(prev => [...prev, { message, type, time: new Date().toLocaleTimeString() }]);
@@ -242,6 +254,16 @@ const Scan = () => {
     };
   };
 
+  const cleanUrl = (value) => {
+    if (!value) return "";
+
+    const str = String(value);
+
+    const match = str.match(/https?:\/\/[^"<>\s]+/);
+
+    return match ? match[0] : str.trim();
+  };
+
   const performScan = async (targetUrl) => {
     if (!targetUrl || !targetUrl.trim()) {
       alert("Please enter a website URL");
@@ -265,7 +287,7 @@ const Scan = () => {
         });
       }, 800);
 
-      const results = await scanService.scan(targetUrl);
+      const results = await scanService.scan(cleanUrl(targetUrl));
 
       clearInterval(progressTimer);
 
@@ -386,7 +408,7 @@ const Scan = () => {
             : "exposed"
       });
 
-    } catch(error){
+    } catch (error) {
       console.error("Scan error:", error);
       addLog("Scan failed", "error");
       alert("Unable to scan website");
@@ -399,9 +421,17 @@ const Scan = () => {
     if (e && e.preventDefault) {
       e.preventDefault();
     }
-    const targetUrl = typeof e === 'string' ? e : url;
+
+    const targetUrl = cleanUrl(
+      typeof e === "string" ? e : url
+    );
+
+    console.log("URL STATE:", url);
+    console.log("TARGET URL:", targetUrl);
+
     await performScan(targetUrl);
   };
+
 
   // QR Scan Complete Handler
   const handleQRScanComplete = (decodedUrl) => {
@@ -415,9 +445,9 @@ const Scan = () => {
 
   const getStatusIcon = (status) => {
     const value = String(status).toLowerCase();
-    if(value === "passed") return CheckCircle;
-    if(value === "warning") return AlertTriangle;
-    if(value === "failed") return AlertCircle;
+    if (value === "passed") return CheckCircle;
+    if (value === "warning") return AlertTriangle;
+    if (value === "failed") return AlertCircle;
     return Info;
   };
 

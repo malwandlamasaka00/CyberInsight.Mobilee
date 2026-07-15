@@ -44,6 +44,8 @@ const History = () => {
     try {
       const response = await api.get("/scans");
 
+console.log("RAW API RESPONSE:", response.data);
+
       const formattedScans = response.data.map(scan => ({
         id: scan.id,
         domain: scan.url,
@@ -57,7 +59,7 @@ const History = () => {
             ? "Needs Improvement"
             : "Critical",
         risk: scan.risk,
-        checks: scan.checks || []
+        report: scan.report || {}
       }));
 
       console.log("FORMATTED:", formattedScans);
@@ -114,211 +116,98 @@ const History = () => {
   };
 
   // Generate detailed findings for a scan with PDF-based recommendations
-  const getScanDetails = (scan) => {
-    // If scan has checks array, use it
-    if (scan.checks && Array.isArray(scan.checks) && scan.checks.length > 0) {
-      return scan.checks.map(check => {
-        const isPassed = check.status === "Passed";
-        const isWarning = check.status === "Warning";
-        const isFailed = check.status === "Failed";
+ const getScanDetails = (scan) => {
+  const report = scan?.report;
 
-        // Get recommendation based on check name and status
-        const getRecommendation = (checkName, status) => {
-          const isPass = status === "Passed";
-          const isWarn = status === "Warning";
-          const isFail = status === "Failed";
+  if (!report) {
+    return [];
+  }
 
-          // SSL/TLS Recommendations
-          if (checkName === "SSL/TLS") {
-            if (isPass) return "SSL certificate is valid and secure. No action required.";
-            if (isWarn) return "⚠️ Certificate expires soon. Renew your SSL certificate within 30 days to maintain secure HTTPS connections.";
-            return "🚨 SSL certificate is invalid or expired. Immediately renew your SSL certificate to prevent security warnings and protect user data in transit.";
-          }
+  return [
+    {
+      label: "URL Validation",
+      detail: report.url?.success
+        ? `Valid URL: ${report.url?.domain || "N/A"}`
+        : "URL validation failed",
+      status: report.url?.success ? "pass" : "fail",
+      severity: report.url?.success ? "low" : "high",
+      impact: report.url?.success
+        ? "URL structure is valid."
+        : "Invalid URL prevents analysis.",
+      recommendation: report.url?.success
+        ? "No action required."
+        : "Use a valid website URL."
+    },
 
-          // HTTP Security Headers Recommendations
-          if (checkName === "Security Headers") {
-            if (isPass) return "All security headers are properly configured. Your website is well-protected against web attacks.";
-            if (isWarn) return "⚠️ Some security headers are missing. Implement Content-Security-Policy (CSP), HSTS, X-Frame-Options, and X-Content-Type-Options headers to improve security.";
-            return "🚨 Critical security headers are missing. Implement Content-Security-Policy to prevent XSS attacks, enable HSTS to enforce HTTPS, set X-Frame-Options to prevent clickjacking, and configure X-Content-Type-Options to prevent MIME sniffing.";
-          }
+    {
+      label: "DNS",
+      detail: report.dns?.success
+        ? `IP Address: ${report.dns?.ip_address || "N/A"}`
+        : "DNS lookup failed",
+      status: report.dns?.success ? "pass" : "fail",
+      severity: report.dns?.success ? "low" : "high",
+      impact: report.dns?.success
+        ? "DNS resolves correctly."
+        : "DNS resolution problems can affect availability.",
+      recommendation: report.dns?.success
+        ? "No action required."
+        : "Review DNS records."
+    },
 
-          // DNS Configuration Recommendations
-          if (checkName === "DNS Configuration") {
-            if (isPass) return "DNS is properly configured. Consider implementing SPF, DKIM, and DMARC for additional email security.";
-            if (isWarn) return "⚠️ DNS configuration issues detected. Review your A records, MX records, and TXT records. Ensure proper SPF configuration to prevent email spoofing.";
-            return "🚨 DNS is misconfigured. Immediately review and correct your DNS records. Configure SPF records to prevent email spoofing, implement DKIM for email authentication, and set up DMARC policies for email protection.";
-          }
+    {
+      label: "SSL/TLS",
+      detail: report.ssl?.valid
+        ? `Certificate valid. Expires in ${report.ssl?.days_remaining || 0} days`
+        : "SSL certificate invalid",
+      status: report.ssl?.valid ? "pass" : "fail",
+      severity: report.ssl?.valid ? "low" : "high",
+      impact: report.ssl?.valid
+        ? "Traffic is encrypted."
+        : "Data may be intercepted.",
+      recommendation: report.ssl?.valid
+        ? "No action required."
+        : "Renew SSL certificate."
+    },
 
-          // Network Security Recommendations
-          if (checkName === "Network Security") {
-            if (isPass) return "No open ports detected. Your network is properly secured. Continue monitoring for any changes.";
-            if (isWarn) return "⚠️ Some unnecessary services are exposed. Review and close unnecessary open ports. Restrict access to essential services only.";
-            return "🚨 Critical services are exposed. Immediately close all unnecessary open ports. Implement firewalls to filter traffic and regularly audit network configurations. Unauthorized access could compromise your infrastructure.";
-          }
+    {
+      label: "Security Headers",
+      detail: report.headers?.success
+        ? "Security headers analysed"
+        : "Security headers analysis failed",
+      status: report.headers?.success ? "pass" : "warn",
+      severity: report.headers?.success ? "low" : "medium",
+      impact: report.headers?.success
+        ? "Header protection enabled."
+        : "Missing headers increase attack surface.",
+      recommendation: report.headers?.success
+        ? "No action required."
+        : "Add CSP, HSTS and X-Frame-Options."
+    },
 
-          // WHOIS Information Recommendations
-          if (checkName === "WHOIS Information") {
-            if (isPass) return "Domain information verified. Keep WHOIS details up to date and consider using WHOIS privacy protection.";
-            if (isWarn) return "⚠️ Domain registration issues detected. Review your domain registration details and ensure all information is current.";
-            return "🚨 Domain information is missing or invalid. Verify domain registration details, keep WHOIS information up to date, monitor domain expiration dates, and use WHOIS privacy protection.";
-          }
+    {
+      label: "Technologies",
+      detail:
+        report.technology?.technologies?.length > 0
+          ? `${report.technology.technologies.length} technologies detected`
+          : "No technologies detected",
+      status: report.technology?.success ? "pass" : "warn",
+      severity: report.technology?.success ? "low" : "medium",
+      impact: "Technology stack identified.",
+      recommendation: "Keep technologies updated."
+    },
 
-          // Technology Detection Recommendations
-          if (checkName === "Technologies") {
-            if (isPass) return "No vulnerable technologies detected. Keep all technologies updated to latest versions for continued security.";
-            if (isWarn) return "⚠️ Outdated technologies found. Update to the latest versions of all technologies. Replace outdated or vulnerable components.";
-            return "🚨 Vulnerable technologies detected. Immediately update all technologies to their latest secure versions. Review your entire technology stack for known vulnerabilities and replace any insecure components.";
-          }
-
-          // Default recommendation
-          if (isPass) return "Check passed. No action required.";
-          if (isWarn) return "⚠️ Review and address the issue to improve security.";
-          return "🚨 Critical issue. Immediate action required.";
-        };
-
-        // Get impact based on check name and status
-        const getImpact = (checkName, status) => {
-          const isPass = status === "Passed";
-          const isWarn = status === "Warning";
-          const isFail = status === "Failed";
-
-          if (checkName === "SSL/TLS") {
-            if (isPass) return "SSL/TLS encryption protects data in transit between users and your website.";
-            if (isWarn) return "Expiring certificates will soon cause security warnings and potential data exposure.";
-            return "Invalid certificates leave all data transmitted between users and your website vulnerable to interception and attacks.";
-          }
-
-          if (checkName === "Security Headers") {
-            if (isPass) return "Properly configured security headers protect against XSS, clickjacking, MIME sniffing, and other web attacks.";
-            if (isWarn) return "Missing headers leave your website partially exposed to web-based attacks.";
-            return "Missing security headers leave your website vulnerable to XSS attacks, clickjacking, and other common web threats.";
-          }
-
-          if (checkName === "DNS Configuration") {
-            if (isPass) return "Proper DNS configuration ensures reliable domain resolution and email security.";
-            if (isWarn) return "DNS issues can lead to email delivery problems and potential domain takeover.";
-            return "Misconfigured DNS leaves your domain vulnerable to spoofing, email interception, and potential takeover.";
-          }
-
-          if (checkName === "Network Security") {
-            if (isPass) return "Secure network configuration minimizes attack surface and protects infrastructure.";
-            if (isWarn) return "Exposed services provide additional entry points that attackers could exploit.";
-            return "Open ports and exposed services provide direct entry points for attackers to compromise your infrastructure.";
-          }
-
-          if (checkName === "WHOIS Information") {
-            if (isPass) return "Valid domain information helps establish trust and proper domain management.";
-            if (isWarn) return "Domain registration issues could affect domain ownership verification.";
-            return "Missing or invalid domain information could indicate domain ownership issues or potential fraud.";
-          }
-
-          if (checkName === "Technologies") {
-            if (isPass) return "Up-to-date technologies reduce the risk of known vulnerabilities.";
-            if (isWarn) return "Outdated technologies contain known vulnerabilities that attackers actively exploit.";
-            return "Vulnerable technologies are common entry points for attackers and must be updated immediately.";
-          }
-
-          return isPass ? "Security check passed." : isWarn ? "⚠️ Security concern detected." : "🚨 Critical security issue detected.";
-        };
-
-        return {
-          label: check.name,
-          detail: check.details || "Check completed",
-          status: isPassed ? "pass" : isWarning ? "warn" : "fail",
-          severity: isPassed ? "low" : isWarning ? "medium" : "high",
-          impact: getImpact(check.name, check.status),
-          recommendation: getRecommendation(check.name, check.status)
-        };
-      });
+    {
+      label: "TLS Intelligence",
+      detail: report.tls_intelligence?.success
+        ? "TLS analysis completed"
+        : "TLS analysis failed",
+      status: report.tls_intelligence?.success ? "pass" : "warn",
+      severity: report.tls_intelligence?.success ? "low" : "medium",
+      impact: "TLS configuration reviewed.",
+      recommendation: "Enable modern TLS versions."
     }
-
-    // Fallback: Generate findings from scan status data
-    const score = scan.score || 0;
-    const findings = [];
-
-    // SSL/TLS
-    let sslStatus = 'pass';
-    let sslDetail = 'Valid certificate';
-    if (scan.sslStatus === 'expired') { sslStatus = 'fail'; sslDetail = 'Certificate expired'; }
-    else if (scan.sslStatus === 'expiring') { sslStatus = 'warn'; sslDetail = 'Certificate expires soon'; }
-
-    findings.push({
-      label: 'SSL/TLS',
-      detail: sslDetail,
-      status: sslStatus,
-      severity: sslStatus === 'pass' ? 'low' : sslStatus === 'warn' ? 'medium' : 'high',
-      impact: sslStatus === 'pass' ? 'SSL/TLS encryption protects data in transit.' :
-        sslStatus === 'warn' ? 'Expiring certificates will soon cause security warnings.' :
-          'Invalid certificates leave data vulnerable to interception.',
-      recommendation: sslStatus === 'pass' ? 'Certificate is valid and secure.' :
-        sslStatus === 'warn' ? '⚠️ Renew certificate within 30 days.' :
-          '🚨 Renew SSL certificate immediately.'
-    });
-
-    // Security Headers
-    let headerStatus = 'pass';
-    let headerDetail = 'All headers present';
-    if (scan.cspStatus === 'missing' || scan.hstsStatus === 'missing') {
-      headerStatus = 'fail';
-      headerDetail = 'Critical headers missing';
-    } else if (scan.cspStatus === 'partial' || scan.hstsStatus === 'weak') {
-      headerStatus = 'warn';
-      headerDetail = 'Some headers missing or weak';
-    }
-
-    findings.push({
-      label: 'Security Headers',
-      detail: headerDetail,
-      status: headerStatus,
-      severity: headerStatus === 'pass' ? 'low' : headerStatus === 'warn' ? 'medium' : 'high',
-      impact: headerStatus === 'pass' ? 'Headers protect against web attacks.' :
-        headerStatus === 'warn' ? 'Missing headers expose website to attacks.' :
-          'Critical headers missing - website vulnerable to XSS and clickjacking.',
-      recommendation: headerStatus === 'pass' ? 'Headers are properly configured.' :
-        headerStatus === 'warn' ? '⚠️ Add missing security headers.' :
-          '🚨 Implement Content-Security-Policy, HSTS, X-Frame-Options, and X-Content-Type-Options.'
-    });
-
-    // DNS Configuration
-    let dnsStatus = 'pass';
-    let dnsDetail = 'Properly configured';
-    if (scan.spfStatus === 'missing') { dnsStatus = 'fail'; dnsDetail = 'SPF missing'; }
-    else if (scan.spfStatus === 'partial') { dnsStatus = 'warn'; dnsDetail = 'SPF partially configured'; }
-
-    findings.push({
-      label: 'DNS Configuration',
-      detail: dnsDetail,
-      status: dnsStatus,
-      severity: dnsStatus === 'pass' ? 'low' : dnsStatus === 'warn' ? 'medium' : 'high',
-      impact: dnsStatus === 'pass' ? 'Proper DNS ensures email security.' :
-        dnsStatus === 'warn' ? 'DNS issues could lead to email problems.' :
-          'Misconfigured DNS leaves domain vulnerable to spoofing.',
-      recommendation: dnsStatus === 'pass' ? 'DNS is properly configured.' :
-        dnsStatus === 'warn' ? '⚠️ Fix DNS configuration issues.' :
-          '🚨 Reconfigure DNS records and set up SPF, DKIM, DMARC.'
-    });
-
-    // Network Security
-    let netStatus = 'pass';
-    let netDetail = 'No open ports';
-    if (scan.portsStatus === 'exposed') { netStatus = 'fail'; netDetail = 'Critical ports exposed'; }
-    else if (scan.portsStatus === 'warning') { netStatus = 'warn'; netDetail = 'Some services exposed'; }
-
-    findings.push({
-      label: 'Network Security',
-      detail: netDetail,
-      status: netStatus,
-      severity: netStatus === 'pass' ? 'low' : netStatus === 'warn' ? 'medium' : 'high',
-      impact: netStatus === 'pass' ? 'Network minimizes attack surface.' :
-        netStatus === 'warn' ? 'Exposed services provide attack entry points.' :
-          'Open ports provide direct entry for attackers.',
-      recommendation: netStatus === 'pass' ? 'All ports are properly secured.' :
-        netStatus === 'warn' ? '⚠️ Close unnecessary open ports.' :
-          '🚨 Immediately close exposed critical ports.'
-    });
-
-    return findings;
-  };
+  ];
+};
   const getCriticalIssuesCount = (scan) => {
     if (!scan) return 0;
 
@@ -350,11 +239,12 @@ const History = () => {
 
   // Filter and sort scans
   const getFilteredScans = () => {
-    let filtered = scans;
+    let filtered = [...scans];
 
     if (searchTerm) {
       filtered = filtered.filter(scan =>
-        scan.domain.toLowerCase().includes(searchTerm.toLowerCase())
+        String(scan.domain || "")
+  .toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -388,6 +278,9 @@ const History = () => {
   };
 
   const filteredScans = getFilteredScans();
+  console.log("SCANS:", scans);
+console.log("FILTERED:", filteredScans);
+
   const totalScans = scans.length;
   const totalPages = Math.ceil(filteredScans.length / 5);
 
