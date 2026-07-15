@@ -159,8 +159,6 @@ setUserName(fullName || user.email || "User");
             icon={Award}
             color="blue"
             description="Overall security posture"
-            trend="up"
-            trendValue="3%"
           />
           <DashboardStatCard
             title="Scans This Month"
@@ -168,8 +166,6 @@ setUserName(fullName || user.email || "User");
             icon={Activity}
             color="green"
             description="Security scans performed"
-            trend="up"
-            trendValue="12%"
           />
           <DashboardStatCard
             title="Critical Issues"
@@ -177,8 +173,6 @@ setUserName(fullName || user.email || "User");
             icon={AlertTriangle}
             color="red"
             description="Require immediate attention"
-            trend="down"
-            trendValue="2"
           />
           <DashboardStatCard
             title="Passed Checks"

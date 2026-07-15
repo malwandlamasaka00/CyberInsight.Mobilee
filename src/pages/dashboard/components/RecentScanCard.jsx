@@ -22,13 +22,13 @@ const RecentScanCard = ({ scans }) => {
       );
     }
     if (scan.score >= 50) {
-  return (
-    <span className="badge badge-moderate">
-      <AlertTriangle size={12} />
-      Needs Improvement
-    </span>
-  );
-}
+      return (
+        <span className="badge badge-moderate">
+          <AlertTriangle size={12} />
+          Needs Improvement
+        </span>
+      );
+    }
     return (
       <span className="badge badge-critical">
         <AlertTriangle size={12} />
@@ -36,12 +36,6 @@ const RecentScanCard = ({ scans }) => {
       </span>
     );
   };
-
- const getScoreColor = (score) => {
-  if (score >= 80) return 'score-green';
-  if (score >= 50) return 'score-yellow';
-  return 'score-red';
-};
 
   const getStatusDot = (score) => {
     if (score >= 80) return 'dot-secure';
@@ -59,11 +53,11 @@ const RecentScanCard = ({ scans }) => {
     setSelectedScan(null);
   };
 
-const getScoreLabel = (score) => {
-  if (score >= 80) return 'Secure';
-  if (score >= 50) return 'Needs Improvement';
-  return 'Critical';
-};
+  const getScoreLabel = (score) => {
+    if (score >= 80) return 'Secure';
+    if (score >= 50) return 'Needs Improvement';
+    return 'Critical';
+  };
 
   const getStatusText = (score) => {
     if (score >= 80) return 'Secure';
@@ -86,45 +80,43 @@ const getScoreLabel = (score) => {
         </div>
         
         <div className="recent-scans-list">
-          {scans.map((scan) => (
-            <div 
-              key={scan.id} 
-              className="scan-item cursor-target" 
-              onClick={() => openModal(scan)}
-            >
-              <div className="scan-item-content">
-                <div className={`scan-status-dot ${getStatusDot(scan.score)}`} />
-                
-                <div className="scan-info">
-                  <div className="scan-domain-wrapper">
-                    <span className="scan-domain">{scan.domain}</span>
-                    {scan.issuesFound > 0 && (
-                      <span className="scan-issues">
-                        <AlertTriangle size={12} />
-                        {scan.issuesFound} issues
+          {scans && scans.length > 0 ? (
+            scans.map((scan) => (
+              <div 
+                key={scan.id} 
+                className="scan-item cursor-target" 
+                onClick={() => openModal(scan)}
+              >
+                <div className="scan-item-content">
+                  <div className={`scan-status-dot ${getStatusDot(scan.score)}`} />
+                  
+                  <div className="scan-info">
+                    <div className="scan-domain-wrapper">
+                      <span className="scan-domain">{scan.domain}</span>
+                    </div>
+                    <div className="scan-meta">
+                      <span className="scan-date">
+                        <Calendar size={12} />
+                        {new Date(scan.date).toLocaleDateString()}
                       </span>
-                    )}
-                  </div>
-                  <div className="scan-meta">
-                    <span className="scan-date">
-                      <Calendar size={12} />
-                      {new Date(scan.date).toLocaleDateString()}
-                    </span>
-                    <span className={`scan-score ${getScoreColor(scan.score)}`}>
-                      Score: {scan.score}%
-                    </span>
+                    </div>
                   </div>
                 </div>
+                
+                <div className="scan-actions" onClick={(e) => e.stopPropagation()}>
+                  {getStatusBadge(scan)}
+                  <button className="scan-view-btn cursor-target" title="View details">
+                    <Eye size={14} />
+                  </button>
+                </div>
               </div>
-              
-              <div className="scan-actions" onClick={(e) => e.stopPropagation()}>
-                {getStatusBadge(scan)}
-                <button className="scan-view-btn cursor-target" title="View details">
-                  <Eye size={14} />
-                </button>
-              </div>
+            ))
+          ) : (
+            <div className="no-scans-message">
+              <p>No scans performed yet</p>
+              <span>Run your first security scan to see results here</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -168,7 +160,7 @@ const getScoreLabel = (score) => {
                 </div>
                 <div className="scan-modal-info-item">
                   <span className="scan-modal-info-label">Critical Issues</span>
-                  <span className="scan-modal-info-value">{selectedScan.criticalIssues}</span>
+                  <span className="scan-modal-info-value">{selectedScan.criticalIssues || 0}</span>
                 </div>
                 <div className="scan-modal-info-item">
                   <span className="scan-modal-info-label">Scan ID</span>
@@ -201,8 +193,6 @@ const getScoreLabel = (score) => {
                   </div>
                 </div>
               </div>
-
-             
             </div>
           </div>
         </div>

@@ -1501,3 +1501,544 @@
   background: #f1f5f9;
   transform: translateY(-2px);
 }
+/* ===== SCAN MODAL (Check Details) - ENHANCED ===== */
+.scan-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: scanModalFadeIn 0.3s ease;
+}
+
+@keyframes scanModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scan-modal-content {
+  background: var(--bg-card, #1e293b);
+  border-radius: 20px;
+  max-width: 750px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color, #2d3748);
+  animation: scanModalSlideUp 0.3s ease;
+}
+
+@keyframes scanModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.scan-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scan-modal-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #2d3748);
+  border-radius: 10px;
+}
+
+.scan-modal-content::-webkit-scrollbar-thumb {
+  background: var(--border-dark, #3d4a5e);
+  border-radius: 10px;
+}
+
+.scan-modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted, #94a3b8);
+}
+
+/* ===== MODAL HEADER ===== */
+.scan-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem 2rem;
+  border-bottom: 3px solid;
+  background: var(--bg-secondary, #1e293b);
+  border-radius: 20px 20px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.scan-modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scan-modal-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary, #f1f5f9);
+  margin: 0 0 0.25rem 0;
+}
+
+.scan-modal-status {
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* ===== MODAL CLOSE BUTTON ===== */
+.scan-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-input, #2d3748);
+  color: var(--text-secondary, #e2e8f0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.scan-modal-close:hover {
+  background: rgba(245, 87, 108, 0.15);
+  color: var(--danger-color, #f5576c);
+  transform: rotate(90deg);
+}
+
+/* ===== MODAL BODY ===== */
+.scan-modal-body {
+  padding: 1.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ===== MODAL SECTIONS ===== */
+.scan-modal-section {
+  background: var(--bg-secondary, #1e293b);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-color, #2d3748);
+  transition: all 0.2s ease;
+}
+
+.scan-modal-section:hover {
+  border-color: var(--border-dark, #3d4a5e);
+}
+
+.scan-modal-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scan-modal-section h3 svg {
+  color: var(--gradient-start, #667eea);
+}
+
+.scan-modal-section p {
+  color: var(--text-secondary, #e2e8f0);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ===== IMPORTANCE SECTION ===== */
+.scan-modal-section.importance {
+  background: rgba(245, 87, 108, 0.06);
+  border-color: rgba(245, 87, 108, 0.15);
+}
+
+.scan-modal-section.importance h3 {
+  color: var(--danger-color, #f5576c);
+}
+
+.scan-modal-section.importance h3 svg {
+  color: var(--danger-color, #f5576c);
+}
+
+/* ===== RISK LEVEL ===== */
+.scan-modal-section.risk {
+  background: rgba(253, 203, 110, 0.06);
+  border-color: rgba(253, 203, 110, 0.15);
+}
+
+.scan-modal-section.risk h3 {
+  color: var(--warning-color, #fdcb6e);
+}
+
+.scan-modal-section.risk h3 svg {
+  color: var(--warning-color, #fdcb6e);
+}
+
+.scan-modal-risk {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* ===== RECOMMENDATIONS SECTION ===== */
+.scan-modal-section.recommendations {
+  background: rgba(67, 233, 123, 0.06);
+  border-color: rgba(67, 233, 123, 0.15);
+}
+
+.scan-modal-section.recommendations h3 {
+  color: var(--success-color, #43e97b);
+}
+
+.scan-modal-section.recommendations h3 svg {
+  color: var(--success-color, #43e97b);
+}
+
+/* ===== ISSUES SECTION ===== */
+.scan-modal-section.issues {
+  background: rgba(245, 87, 108, 0.06);
+  border-color: rgba(245, 87, 108, 0.15);
+}
+
+.scan-modal-section.issues h3 {
+  color: var(--danger-color, #f5576c);
+}
+
+.scan-modal-section.issues h3 svg {
+  color: var(--danger-color, #f5576c);
+}
+
+/* ===== RESULT SECTION ===== */
+.scan-modal-section.result {
+  background: rgba(102, 126, 234, 0.06);
+  border-color: rgba(102, 126, 234, 0.15);
+}
+
+.scan-modal-section.result h3 {
+  color: var(--gradient-start, #667eea);
+}
+
+.scan-modal-section.result h3 svg {
+  color: var(--gradient-start, #667eea);
+}
+
+.scan-modal-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scan-modal-result-status {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.scan-modal-result p {
+  color: var(--text-secondary, #e2e8f0);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== CHECKLIST (What We Check) ===== */
+.scan-modal-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scan-modal-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: var(--text-secondary, #e2e8f0);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color, #2d3748);
+}
+
+.scan-modal-checklist li:last-child {
+  border-bottom: none;
+}
+
+.scan-modal-checklist li svg {
+  flex-shrink: 0;
+  color: var(--success-color, #43e97b);
+}
+
+/* ===== RECOMMENDATIONS LIST ===== */
+.scan-modal-recommendations {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scan-modal-recommendations li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: var(--text-secondary, #e2e8f0);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color, #2d3748);
+}
+
+.scan-modal-recommendations li:last-child {
+  border-bottom: none;
+}
+
+.recommendation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+}
+
+/* ===== ISSUES LIST ===== */
+.scan-modal-issues {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scan-modal-issues li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  color: var(--text-secondary, #e2e8f0);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color, #2d3748);
+}
+
+.scan-modal-issues li:last-child {
+  border-bottom: none;
+}
+
+.scan-modal-issues li svg {
+  flex-shrink: 0;
+  color: var(--danger-color, #f5576c);
+}
+
+/* ===== EXAMPLE SECTION ===== */
+.scan-modal-example {
+  background: var(--bg-input, #2d3748);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.25rem;
+  border-left: 3px solid var(--gradient-start, #667eea);
+}
+
+.scan-modal-example p {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #e2e8f0);
+  margin: 0;
+  word-break: break-all;
+}
+
+/* ===== MODAL FOOTER ===== */
+.scan-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 2rem 1.5rem;
+  border-top: 1px solid var(--border-color, #2d3748);
+  background: var(--bg-secondary, #1e293b);
+  border-radius: 0 0 20px 20px;
+}
+
+.scan-modal-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.75rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scan-modal-btn.primary {
+  background: linear-gradient(135deg, var(--gradient-start, #667eea), var(--gradient-end, #764ba2));
+  color: #ffffff;
+}
+
+.scan-modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.scan-modal-btn.secondary {
+  background: var(--bg-input, #2d3748);
+  color: var(--text-secondary, #e2e8f0);
+  border: 1px solid var(--border-color, #2d3748);
+}
+
+.scan-modal-btn.secondary:hover {
+  background: var(--bg-card, #1e293b);
+  color: var(--text-primary, #f1f5f9);
+  border-color: var(--border-dark, #3d4a5e);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .scan-modal-content {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .scan-modal-header {
+    padding: 1.25rem 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .scan-modal-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .scan-modal-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .scan-modal-body {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .scan-modal-section {
+    padding: 1rem 1.25rem;
+  }
+
+  .scan-modal-section h3 {
+    font-size: 0.8rem;
+  }
+
+  .scan-modal-section p {
+    font-size: 0.85rem;
+  }
+
+  .scan-modal-footer {
+    padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .scan-modal-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .scan-modal-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .scan-modal-risk {
+    font-size: 0.75rem;
+    padding: 0.3rem 1rem;
+  }
+
+  .scan-modal-checklist li,
+  .scan-modal-recommendations li,
+  .scan-modal-issues li {
+    font-size: 0.85rem;
+  }
+
+  .scan-modal-example p {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .scan-modal-content {
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
+  .scan-modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .scan-modal-header h2 {
+    font-size: 1rem;
+  }
+
+  .scan-modal-body {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .scan-modal-section {
+    padding: 0.75rem 1rem;
+  }
+
+  .scan-modal-section h3 {
+    font-size: 0.7rem;
+  }
+
+  .scan-modal-section p {
+    font-size: 0.8rem;
+  }
+
+  .scan-modal-footer {
+    padding: 0.75rem 1.25rem;
+    flex-direction: column;
+  }
+
+  .scan-modal-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* src/pages/scan/Scan.css - Add this */
+
+.scan-page-content{
+  width: 100%;
+}
+
+.scan-page-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
