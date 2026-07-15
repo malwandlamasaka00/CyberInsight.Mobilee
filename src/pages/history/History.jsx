@@ -1,10 +1,10 @@
 // src/pages/history/History.jsx
 import React, { useState, useEffect } from "react";
-import { historyService } from "../../services/historyService";
+import { api } from "../../api/api";
 import { getIssuesFoundCount } from "../../utils/scanUtils";
-import { 
-  Search, 
-  Download, 
+import {
+  Search,
+  Download,
   Eye,
   Clock,
   CheckCircle,
@@ -39,21 +39,40 @@ const History = () => {
 
   const [scans, setScans] = useState([]);
 
-  useEffect(() => {
-    const history = historyService.getHistory();
-    setScans(history);
-  }, []); 
+useEffect(() => {
+  const loadHistory = async () => {
+    try {
+      const response = await api.get("/scans");
 
- const getScoreColor = (score) => {
-  if (score >= 80) return 'score-green';
-  if (score >= 50) return 'score-yellow';
-  return 'score-red';
-};
-const getStatusFromScore = (score) => {
-  if (score >= 80) return "Secure";
-  if (score >= 50) return "Needs Improvement";
-  return "Critical";
-};
+      const formattedScans = response.data.map(scan => ({
+        id: scan.id,
+        domain: scan.url,
+        score: scan.security_score,
+        date: scan.created_at,
+        status: scan.grade,
+        risk: scan.risk,
+        checks: []
+      }));
+
+      setScans(formattedScans);
+    } catch (error) {
+      console.error("Failed to load scan history:", error);
+    }
+  };
+
+  loadHistory();
+}, []);
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'score-green';
+    if (score >= 50) return 'score-yellow';
+    return 'score-red';
+  };
+  const getStatusFromScore = (score) => {
+    if (score >= 80) return "Secure";
+    if (score >= 50) return "Needs Improvement";
+    return "Critical";
+  };
 
 const getStatusBadge = (score) => {
   if (score >= 80) {
@@ -86,125 +105,142 @@ const getStatusBadge = (score) => {
 };
 
   // Generate detailed findings for a scan with PDF-based recommendations
-const getScanDetails = (scan) => {
-  if (!Array.isArray(scan.checks)) return [];
+  const getScanDetails = (scan) => {
+    if (!Array.isArray(scan.checks)) return [];
 
-  return scan.checks.map(check => {
-    const isPassed = check.status === "Passed";
-    const isWarning = check.status === "Warning";
-    const isFailed = check.status === "Failed";
+    return scan.checks.map(check => {
+      const isPassed = check.status === "Passed";
+      const isWarning = check.status === "Warning";
+      const isFailed = check.status === "Failed";
 
-    // Get recommendation based on check name and status
-    const getRecommendation = (checkName, status) => {
-      const isPass = status === "Passed";
-      const isWarn = status === "Warning";
-      const isFail = status === "Failed";
+      // Get recommendation based on check name and status
+      const getRecommendation = (checkName, status) => {
+        const isPass = status === "Passed";
+        const isWarn = status === "Warning";
+        const isFail = status === "Failed";
 
-      // SSL/TLS Recommendations
-      if (checkName === "SSL/TLS") {
-        if (isPass) return "SSL certificate is valid and secure. No action required.";
-        if (isWarn) return " Certificate expires soon. Renew your SSL certificate within 30 days to maintain secure HTTPS connections.";
-        return " SSL certificate is invalid or expired. Immediately renew your SSL certificate to prevent security warnings and protect user data in transit.";
-      }
+        // SSL/TLS Recommendations
+        if (checkName === "SSL/TLS") {
+          if (isPass) return "SSL certificate is valid and secure. No action required.";
+          if (isWarn) return " Certificate expires soon. Renew your SSL certificate within 30 days to maintain secure HTTPS connections.";
+          return " SSL certificate is invalid or expired. Immediately renew your SSL certificate to prevent security warnings and protect user data in transit.";
+        }
 
-      // HTTP Security Headers Recommendations
-      if (checkName === "Security Headers") {
-        if (isPass) return "All security headers are properly configured. Your website is well-protected  against web attacks.";
-        if (isWarn) return " Some security headers are missing. Implement headers to improve security.";
-        return " Critical security headers are missing. Implement security headers to prevent MIME sniffing.";
-      }
+        // HTTP Security Headers Recommendations
+        if (checkName === "Security Headers") {
+          if (isPass) return "All security headers are properly configured. Your website is well-protected  against web attacks.";
+          if (isWarn) return " Some security headers are missing. Implement headers to improve security.";
+          return " Critical security headers are missing. Implement security headers to prevent MIME sniffing.";
+        }
 
-      // DNS Configuration Recommendations
-      if (checkName === "DNS Configuration") {
-        if (isPass) return "DNS is properly configured. Consider implementing SPF, DKIM, and DMARC for additional email security.";
-        if (isWarn) return " DNS configuration issues detected. Review your A records, MX records, and TXT records. Ensure proper SPF configuration to prevent email spoofing.";
-        return " DNS is misconfigured. Immediately review and correct your DNS records. ";
-      }
+        // DNS Configuration Recommendations
+        if (checkName === "DNS Configuration") {
+          if (isPass) return "DNS is properly configured. Consider implementing SPF, DKIM, and DMARC for additional email security.";
+          if (isWarn) return " DNS configuration issues detected. Review your A records, MX records, and TXT records. Ensure proper SPF configuration to prevent email spoofing.";
+          return " DNS is misconfigured. Immediately review and correct your DNS records. ";
+        }
 
-      // Network Security Recommendations
-      if (checkName === "Network Security") {
-        if (isPass) return "No open ports detected. Your network is properly secured. Continue monitoring for any changes.";
-        if (isWarn) return " Some unnecessary services are exposed. Review and close unnecessary open ports. Restrict access to essential services only.";
-        return "Critical services are exposed. Immediately close all unnecessary open ports, Unauthorized access could compromise your infrastructure.";
-      }
+        // Network Security Recommendations
+        if (checkName === "Network Security") {
+          if (isPass) return "No open ports detected. Your network is properly secured. Continue monitoring for any changes.";
+          if (isWarn) return " Some unnecessary services are exposed. Review and close unnecessary open ports. Restrict access to essential services only.";
+          return "Critical services are exposed. Immediately close all unnecessary open ports, Unauthorized access could compromise your infrastructure.";
+        }
 
-      // WHOIS Information Recommendations
-      if (checkName === "WHOIS Information") {
-        if (isPass) return "Domain information verified. Keep WHOIS details up to date and consider using WHOIS privacy protection.";
-        if (isWarn) return " Domain registration issues detected. Review your domain registration details and ensure all information is current.";
-        return " Domain information is missing or invalid. Verify domain registration details, keep WHOIS information up to date.";
-      }
+        // WHOIS Information Recommendations
+        if (checkName === "WHOIS Information") {
+          if (isPass) return "Domain information verified. Keep WHOIS details up to date and consider using WHOIS privacy protection.";
+          if (isWarn) return " Domain registration issues detected. Review your domain registration details and ensure all information is current.";
+          return " Domain information is missing or invalid. Verify domain registration details, keep WHOIS information up to date.";
+        }
 
-     /*// Technology Detection Recommendations
-      if (checkName === "Technologies") {
-        if (isPass) return "No vulnerable technologies detected. Keep all technologies updated to latest versions for continued security.";
-        if (isWarn) return " Outdated technologies found. Update to the latest versions of all technologies. Replace outdated or vulnerable components.";
-        return " Vulnerable technologies detected. Immediately update all technologies to their latest secure versions.";
-      }*/
+        /*// Technology Detection Recommendations
+         if (checkName === "Technologies") {
+           if (isPass) return "No vulnerable technologies detected. Keep all technologies updated to latest versions for continued security.";
+           if (isWarn) return " Outdated technologies found. Update to the latest versions of all technologies. Replace outdated or vulnerable components.";
+           return " Vulnerable technologies detected. Immediately update all technologies to their latest secure versions.";
+         }*/
 
-      // Default recommendation
-      if (isPass) return "Check passed. No action required.";
-      if (isWarn) return " Review and address the issue to improve security.";
-      return " Critical issue. Immediate action required.";
-    };
+        // Default recommendation
+        if (isPass) return "Check passed. No action required.";
+        if (isWarn) return " Review and address the issue to improve security.";
+        return " Critical issue. Immediate action required.";
+      };
 
-    // Get impact based on check name and status
-    const getImpact = (checkName, status) => {
-      const isPass = status === "Passed";
-      const isWarn = status === "Warning";
-      const isFail = status === "Failed";
+      // Get impact based on check name and status
+      const getImpact = (checkName, status) => {
+        const isPass = status === "Passed";
+        const isWarn = status === "Warning";
+        const isFail = status === "Failed";
 
-      if (checkName === "SSL/TLS") {
-        if (isPass) return "SSL/TLS encryption protects data in transit between users and your website.";
-        if (isWarn) return "Expiring certificates will soon cause security warnings and potential data exposure.";
-        return "Invalid certificates leave all data transmitted between users and your website vulnerable to interception and attacks.";
-      }
+        if (checkName === "SSL/TLS") {
+          if (isPass) return "SSL/TLS encryption protects data in transit between users and your website.";
+          if (isWarn) return "Expiring certificates will soon cause security warnings and potential data exposure.";
+          return "Invalid certificates leave all data transmitted between users and your website vulnerable to interception and attacks.";
+        }
 
-      if (checkName === "Security Headers") {
-        if (isPass) return "Properly configured security headers protect against web attacks.";
-        if (isWarn) return "Missing headers leave your website partially exposed to web-based attacks.";
-        return "Missing security headers leave your website vulnerable to  web threats.";
-      }
+        if (checkName === "Security Headers") {
+          if (isPass) return "Properly configured security headers protect against web attacks.";
+          if (isWarn) return "Missing headers leave your website partially exposed to web-based attacks.";
+          return "Missing security headers leave your website vulnerable to  web threats.";
+        }
 
-      if (checkName === "DNS Configuration") {
-        if (isPass) return "Proper DNS configuration ensures reliable domain resolution and email security.";
-        if (isWarn) return "DNS issues can lead to email delivery problems and potential domain takeover.";
-        return "Misconfigured DNS leaves your domain vulnerable to spoofing, email interception, and potential takeover.";
-      }
+        if (checkName === "DNS Configuration") {
+          if (isPass) return "Proper DNS configuration ensures reliable domain resolution and email security.";
+          if (isWarn) return "DNS issues can lead to email delivery problems and potential domain takeover.";
+          return "Misconfigured DNS leaves your domain vulnerable to spoofing, email interception, and potential takeover.";
+        }
 
-      if (checkName === "Network Security") {
-        if (isPass) return "Secure network configuration minimizes attack surface and protects infrastructure.";
-        if (isWarn) return "Exposed services provide additional entry points that attackers could exploit.";
-        return "Open ports and exposed services provide direct entry points for attackers to compromise your infrastructure.";
-      }
+        if (checkName === "Network Security") {
+          if (isPass) return "Secure network configuration minimizes attack surface and protects infrastructure.";
+          if (isWarn) return "Exposed services provide additional entry points that attackers could exploit.";
+          return "Open ports and exposed services provide direct entry points for attackers to compromise your infrastructure.";
+        }
 
-      if (checkName === "WHOIS Information") {
-        if (isPass) return "Valid domain information helps establish trust and proper domain management.";
-        if (isWarn) return "Domain registration issues could affect domain ownership verification.";
-        return "Missing or invalid domain information could indicate domain ownership issues or potential fraud.";
-      }
+        if (checkName === "WHOIS Information") {
+          if (isPass) return "Valid domain information helps establish trust and proper domain management.";
+          if (isWarn) return "Domain registration issues could affect domain ownership verification.";
+          return "Missing or invalid domain information could indicate domain ownership issues or potential fraud.";
+        }
 
-      if (checkName === "Technologies") {
-        if (isPass) return "Up-to-date technologies reduce the risk of known vulnerabilities.";
-        if (isWarn) return "Outdated technologies contain known vulnerabilities that attackers actively exploit.";
-        return "Vulnerable technologies are common entry points for attackers and must be updated immediately.";
-      }
+        if (checkName === "Technologies") {
+          if (isPass) return "Up-to-date technologies reduce the risk of known vulnerabilities.";
+          if (isWarn) return "Outdated technologies contain known vulnerabilities that attackers actively exploit.";
+          return "Vulnerable technologies are common entry points for attackers and must be updated immediately.";
+        }
 
-      return isPass ? "Security check passed." : isWarn ? "Security concern detected." : "Critical security issue detected.";
-    };
+        return isPass ? "Security check passed." : isWarn ? "Security concern detected." : "Critical security issue detected.";
+      };
 
-    return {
-      label: check.name,
-      detail: check.details || "Check completed",
-      status: isPassed ? "pass" : isWarning ? "warn" : "fail",
-      severity: isPassed ? "low" : isWarning ? "medium" : "high",
-      impact: getImpact(check.name, check.status),
-      recommendation: getRecommendation(check.name, check.status)
-    };
-  });
-};
+      return {
+        label: check.name,
+        detail: check.details || "Check completed",
+        status: isPassed ? "pass" : isWarning ? "warn" : "fail",
+        severity: isPassed ? "low" : isWarning ? "medium" : "high",
+        impact: getImpact(check.name, check.status),
+        recommendation: getRecommendation(check.name, check.status)
+      };
+    });
+  };
 
-  const getCriticalIssuesCount = getIssuesFoundCount;
+
+
+  const getCriticalIssuesCount = (scan) => {
+    if (!scan) return 0;
+    
+    // If scan has checks array, count failed and warning checks
+    if (scan.checks && Array.isArray(scan.checks) && scan.checks.length > 0) {
+      return scan.checks.filter(check => 
+        check.status === "Failed" || check.status === "Warning"
+      ).length;
+    }
+    
+    // Fallback: Count based on score
+    const score = scan.score || 0;
+    if (score >= 80) return 0;
+    if (score >= 50) return 1;
+    return 2;
+  };
 
   // Handle scan click - opens popup
   const handleScanClick = (scan) => {
@@ -221,13 +257,13 @@ const getScanDetails = (scan) => {
   // Filter and sort scans
   const getFilteredScans = () => {
     let filtered = scans;
-    
+
     if (searchTerm) {
-      filtered = filtered.filter(scan => 
+      filtered = filtered.filter(scan =>
         scan.domain.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (filterStatus !== 'all') {
       filtered = filtered.filter(scan => {
         if (filterStatus === 'secure') return scan.score >= 80;
@@ -236,8 +272,8 @@ const getScanDetails = (scan) => {
         return true;
       });
     }
-    
-    switch(sortBy) {
+
+    switch (sortBy) {
       case 'newest':
         filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
         break;
@@ -253,7 +289,7 @@ const getScanDetails = (scan) => {
       default:
         break;
     }
-    
+
     return filtered;
   };
 
@@ -272,16 +308,16 @@ const getScanDetails = (scan) => {
     // Remove existing toasts
     const existingToasts = document.querySelectorAll('.toast-notification');
     existingToasts.forEach(toast => toast.remove());
-    
+
     const toast = document.createElement('div');
     toast.className = `toast-notification toast-${type}`;
-    
+
     const icons = {
       success: '✅',
       error: '❌',
       info: 'ℹ️'
     };
-    
+
     toast.innerHTML = `
       <span style="font-size: 20px;">${icons[type] || icons.success}</span>
       <span>${message}</span>
@@ -289,7 +325,7 @@ const getScanDetails = (scan) => {
         ✕
       </button>
     `;
-    
+
     document.body.appendChild(toast);
 
     // Auto dismiss after 4 seconds
@@ -308,7 +344,7 @@ const getScanDetails = (scan) => {
   // ===== EXPORT AS PDF =====
   const handleExportPDF = async () => {
     setExporting(true);
-    
+
     try {
       // Create a temporary container for the PDF content
       const container = document.createElement('div');
@@ -319,7 +355,7 @@ const getScanDetails = (scan) => {
         color: #1a1a2e;
         width: 800px;
       `;
-      
+
       // Build the HTML content
       let htmlContent = `
         <div style="text-align: center; margin-bottom: 30px;">
@@ -356,7 +392,7 @@ const getScanDetails = (scan) => {
           </thead>
           <tbody>
       `;
-      
+
       filteredScans.forEach(scan => {
         const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Needs Improvement' : 'Critical';
         const statusColor = scan.status === 'pass' ? '#43e97b' : scan.status === 'warn' ? '#fdcb6e' : '#f5576c';
@@ -372,7 +408,7 @@ const getScanDetails = (scan) => {
           </tr>
         `;
       });
-      
+
       htmlContent += `
           </tbody>
         </table>
@@ -382,10 +418,10 @@ const getScanDetails = (scan) => {
           <p>© ${new Date().getFullYear()} CyberInsight - All rights reserved</p>
         </div>
       `;
-      
+
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
-      
+
       // Convert to PDF
       const canvas = await html2canvas(container, {
         scale: 2,
@@ -395,29 +431,29 @@ const getScanDetails = (scan) => {
         width: 800,
         height: container.scrollHeight
       });
-      
+
       document.body.removeChild(container);
-      
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       let heightLeft = pdfHeight;
       let position = 0;
-      
+
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pdf.internal.pageSize.getHeight();
-      
+
       while (heightLeft > 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
         heightLeft -= pdf.internal.pageSize.getHeight();
       }
-      
-      pdf.save(`scan_history_${new Date().toISOString().slice(0,10)}.pdf`);
-      
+
+      pdf.save(`scan_history_${new Date().toISOString().slice(0, 10)}.pdf`);
+
       showToast('✅ Scan history exported as PDF successfully!', 'success');
     } catch (error) {
       console.error('PDF Export error:', error);
@@ -430,10 +466,10 @@ const getScanDetails = (scan) => {
   // ===== DOWNLOAD SINGLE SCAN AS PDF =====
   const handleDownloadReportPDF = async (scan) => {
     setDownloading(true);
-    
+
     try {
       const findings = getScanDetails(scan);
-      
+
       const container = document.createElement('div');
       container.style.cssText = `
         padding: 40px;
@@ -442,10 +478,10 @@ const getScanDetails = (scan) => {
         color: #1a1a2e;
         width: 800px;
       `;
-      
+
       const statusColor = scan.status === 'pass' ? '#43e97b' : scan.status === 'warn' ? '#fdcb6e' : '#f5576c';
       const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Needs Improvement' : 'Critical';
-      
+
       let findingsHTML = '';
       findings.forEach(f => {
         const fColor = f.status === 'pass' ? '#43e97b' : f.status === 'warn' ? '#fdcb6e' : '#f5576c';
@@ -458,7 +494,7 @@ const getScanDetails = (scan) => {
           </div>
         `;
       });
-      
+
       const htmlContent = `
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #2d7aff; font-size: 28px; margin-bottom: 4px;">🛡️ Security Scan Report</h1>
@@ -497,10 +533,10 @@ const getScanDetails = (scan) => {
           <p>© ${new Date().getFullYear()} CyberInsight - All rights reserved</p>
         </div>
       `;
-      
+
       container.innerHTML = htmlContent;
       document.body.appendChild(container);
-      
+
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
@@ -509,29 +545,29 @@ const getScanDetails = (scan) => {
         width: 800,
         height: container.scrollHeight
       });
-      
+
       document.body.removeChild(container);
-      
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       let heightLeft = pdfHeight;
       let position = 0;
-      
+
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pdf.internal.pageSize.getHeight();
-      
+
       while (heightLeft > 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
         heightLeft -= pdf.internal.pageSize.getHeight();
       }
-      
-      pdf.save(`scan_report_${scan.domain}_${new Date().toISOString().slice(0,10)}.pdf`);
-      
+
+      pdf.save(`scan_report_${scan.domain}_${new Date().toISOString().slice(0, 10)}.pdf`);
+
       showToast(`📄 Report for ${scan.domain} downloaded as PDF successfully!`, 'success');
     } catch (error) {
       console.error('PDF Download error:', error);
@@ -553,8 +589,8 @@ const getScanDetails = (scan) => {
             </h1>
             <p className="history-subtitle-blue">View all your past security scans and detailed reports</p>
           </div>
-          <button 
-            className="export-btn-blue cursor-target" 
+          <button
+            className="export-btn-blue cursor-target"
             onClick={handleExportPDF}
             disabled={exporting || filteredScans.length === 0}
           >
@@ -640,7 +676,7 @@ const getScanDetails = (scan) => {
           )}
         </div>
         <div className="filter-group">
-          <select 
+          <select
             className="filter-select cursor-target"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -650,7 +686,7 @@ const getScanDetails = (scan) => {
             <option value="moderate">🟡 Needs Improvement</option>
             <option value="critical">🔴 Critical</option>
           </select>
-          <select 
+          <select
             className="filter-select cursor-target"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -699,17 +735,17 @@ const getScanDetails = (scan) => {
                     {getStatusBadge(scan.score)}
                   </td>
                   <td className="col-critical">
-                     {getCriticalIssuesCount(scan) > 0 ? (
-                         <span className="critical-count">
-                      {getCriticalIssuesCount(scan)}
-                          </span>
-                       ) : (
-                    <span className="no-critical">✓ None</span>
-                  )}
-                </td>
+                    {getCriticalIssuesCount(scan) > 0 ? (
+                      <span className="critical-count">
+                        {getCriticalIssuesCount(scan)}
+                      </span>
+                    ) : (
+                      <span className="no-critical">✓ None</span>
+                    )}
+                  </td>
                   <td className="col-actions">
                     <div className="actions-cell">
-                      <button 
+                      <button
                         className="action-btn view-btn"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -719,7 +755,7 @@ const getScanDetails = (scan) => {
                       >
                         <Eye size={14} />
                       </button>
-                      <button 
+                      <button
                         className="action-btn download-btn"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -760,15 +796,15 @@ const getScanDetails = (scan) => {
             Showing {filteredScans.length} of {totalScans} scans
           </div>
           <div className="pagination-controls">
-            <button 
-              className="page-btn" 
+            <button
+              className="page-btn"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               <ChevronLeft size={16} />
             </button>
             {[...Array(Math.min(totalPages, 3))].map((_, i) => (
-              <button 
+              <button
                 key={i}
                 className={`page-btn ${currentPage === i + 1 ? 'active' : ''}`}
                 onClick={() => setCurrentPage(i + 1)}
@@ -778,14 +814,14 @@ const getScanDetails = (scan) => {
             ))}
             {totalPages > 3 && <span className="page-dots">...</span>}
             {totalPages > 3 && (
-              <button 
+              <button
                 className="page-btn"
                 onClick={() => setCurrentPage(totalPages)}
               >
                 {totalPages}
               </button>
             )}
-            <button 
+            <button
               className="page-btn"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
@@ -803,12 +839,12 @@ const getScanDetails = (scan) => {
             <button className="popup-close" onClick={closePopup}>
               <X size={20} />
             </button>
-            
+
             <div className="popup-header">
-              <div className="popup-icon" style={{ 
-                background: selectedScan.score >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' : 
-                           selectedScan.score >= 50 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' : 
-                           'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+              <div className="popup-icon" style={{
+                background: selectedScan.score >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' :
+                  selectedScan.score >= 50 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' :
+                    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
               }}>
                 <Shield size={28} />
               </div>
@@ -820,7 +856,7 @@ const getScanDetails = (scan) => {
             </div>
 
             <div className="popup-score-section">
-              <div className="popup-score-circle" style={{ 
+              <div className="popup-score-circle" style={{
                 borderColor: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 50 ? '#fdcb6e' : '#f5576c',
                 color: selectedScan.score >= 80 ? '#43e97b' : selectedScan.score >= 50 ? '#fdcb6e' : '#f5576c'
               }}>
@@ -832,20 +868,19 @@ const getScanDetails = (scan) => {
                     selectedScan.score >= 80
                       ? 'Secure'
                       : selectedScan.score >= 50
-                      ? 'Needs Improvement'
-                      : 'Critical'
+                        ? 'Needs Improvement'
+                        : 'Critical'
                   }
                 </h3>
                 <p>
                   Status:
                   <span
-                    className={`status-badge ${
-                      selectedScan.score >= 80
+                    className={`status-badge ${selectedScan.score >= 80
                         ? "secure"
                         : selectedScan.score >= 50
-                        ? "moderate"
-                        : "critical"
-                    }`}
+                          ? "moderate"
+                          : "critical"
+                      }`}
                   >
                     {getStatusFromScore(selectedScan.score)}
                   </span>
@@ -879,11 +914,10 @@ const getScanDetails = (scan) => {
             </div>
 
             <div className="popup-footer">
-              
               <button className="btn-secondary" onClick={closePopup}>
                 <X size={16} /> Close
               </button>
-              <button 
+              <button
                 className="btn-download"
                 onClick={() => {
                   handleDownloadReportPDF(selectedScan);

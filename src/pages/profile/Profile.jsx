@@ -1,9 +1,12 @@
 // src/pages/profile/Profile.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  User, 
-  Mail, 
-  Shield, 
+import { api } from '../../api/api';
+import { useAuth } from '../../contexts/AuthContext';
+import './Profile.css';
+import {
+  User,
+  Mail,
+  Shield,
   Calendar,
   Save,
   Camera,
@@ -25,10 +28,7 @@ import {
   Trash2,
   Eye
 } from 'lucide-react';
-import { historyService } from '../../services/historyService';
-import { authService } from '../../services/authService';
-import { useAuth } from '../../contexts/AuthContext';
-import './Profile.css';
+
 
 const Profile = ({ onLogout, onSelectScan }) => {
   const { isAuthenticated } = useAuth();
@@ -45,105 +45,84 @@ const Profile = ({ onLogout, onSelectScan }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [scanHistory, setScanHistory] = useState([]);
-  const [userData, setUserData] = useState(null);
   
+
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const menuRef = useRef(null);
 
   const [profile, setProfile] = useState({
-    name: '',
-    email: '',
-    role: 'Security Administrator',
-    phone: '+1 (555) 123-4567',
-    joined: '',
-    lastActive: ''
-  });
+  name: '',
+  email: '',
+  role: 'Security Administrator',
+  joined: '',
+  lastActive: ''
+});
 
   // Load user data from authService
-  const loadUserData = () => {
+  const loadUserData = async () => {
     try {
-      // Get user from authService
-      const user = authService.getCurrentUser();
-      if (user) {
-        setUserData(user);
-        
-        // Handle both field name formats
-        const firstName = user.first_name || user.name || '';
-        const lastName = user.last_name || user.surname || '';
-        const fullName = firstName && lastName 
-          ? `${firstName} ${lastName}` 
-          : firstName || lastName || user.email?.split('@')[0] || 'User';
-        
-        setProfile({
-          name: fullName,
-          email: user.email || 'user@example.com',
-          role: user.role || 'Security Administrator',
-          phone: user.phone || '+1 (555) 123-4567',
-          joined: user.memberSince || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          lastActive: new Date().toLocaleString()
-        });
-      } else {
-        // Fallback to localStorage
-        const userData = localStorage.getItem('sentinel_user');
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setUserData(parsedUser);
-          const firstName = parsedUser.first_name || parsedUser.name || '';
-          const lastName = parsedUser.last_name || parsedUser.surname || '';
-          const fullName = firstName && lastName 
-            ? `${firstName} ${lastName}` 
-            : firstName || lastName || parsedUser.email?.split('@')[0] || 'User';
-          
-          setProfile({
-            name: fullName,
-            email: parsedUser.email || 'user@example.com',
-            role: parsedUser.role || 'Security Administrator',
-            phone: parsedUser.phone || '+1 (555) 123-4567',
-            joined: parsedUser.memberSince || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-            lastActive: new Date().toLocaleString()
-          });
-        }
-      }
-    } catch (e) {
-      console.error('Error loading user data:', e);
+      const response = await api.get("/auth/me");
+      const user = response.data;
+
+     
+
+      const fullName =
+        `${user.first_name || ""} ${user.last_name || ""}`.trim();
+
+      setProfile(prev => ({
+        ...prev,
+        name: fullName || user.email,
+        email: user.email,
+        role: user.role || "USER",
+        joined: user.created_at
+          ? new Date(user.created_at).toLocaleDateString()
+          : "",
+        lastActive: new Date().toLocaleString()
+      }));
+    } catch (error) {
+      console.error("Error loading user data:", error);
     }
   };
 
   // Load user data on mount and when auth changes
   useEffect(() => {
-    loadUserData();
+    if (isAuthenticated) {
+      loadUserData();
+    }
   }, [isAuthenticated]);
 
   // Load scan history from history service
   useEffect(() => {
-    const loadHistory = () => {
+    const loadHistory = async () => {
       try {
-        const history = historyService.getHistory();
-        if (history && history.length > 0) {
-          setScanHistory(history);
-        } else {
-          setScanHistory([]);
-        }
+        const response = await api.get("/scans");
+
+        const formattedScans = response.data.map(scan => ({
+          id: scan.id,
+          domain: scan.url,
+          url: scan.url,
+          score: scan.security_score,
+          date: scan.created_at,
+          status:
+            scan.security_score >= 80
+              ? "Secure"
+              : scan.security_score >= 50
+                ? "Needs Improvement"
+                : "Critical",
+          risk: scan.risk,
+          checks: []
+        }));
+
+        setScanHistory(formattedScans);
       } catch (e) {
-        console.error('Error loading history:', e);
+        console.error("Error loading history:", e);
         setScanHistory([]);
       }
     };
 
     loadHistory();
-
-    // Listen for history updates
-    const handleHistoryUpdate = () => {
-      loadHistory();
-    };
-
-    window.addEventListener('scanHistoryUpdated', handleHistoryUpdate);
-    
-    return () => {
-      window.removeEventListener('scanHistoryUpdated', handleHistoryUpdate);
-    };
   }, []);
 
   // Load saved image on mount
@@ -187,16 +166,16 @@ const Profile = ({ onLogout, onSelectScan }) => {
   const showToast = (message, type = 'success') => {
     const existingToasts = document.querySelectorAll('.toast-notification');
     existingToasts.forEach(toast => toast.remove());
-    
+
     const toast = document.createElement('div');
     toast.className = `toast-notification toast-${type}`;
-    
+
     const icons = {
       success: '✅',
       error: '❌',
       info: 'ℹ️'
     };
-    
+
     toast.innerHTML = `
       <span style="font-size: 20px;">${icons[type] || icons.success}</span>
       <span>${message}</span>
@@ -204,7 +183,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
         ✕
       </button>
     `;
-    
+
     document.body.appendChild(toast);
 
     setTimeout(() => {
@@ -254,33 +233,32 @@ const Profile = ({ onLogout, onSelectScan }) => {
           existingUser = JSON.parse(stored);
         }
       }
-      
+
       if (existingUser) {
         // Split the full name into first and last name
         const nameParts = profile.name.split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
-        
-        const updatedUser = { 
-          ...existingUser, 
+
+        const updatedUser = {
+          ...existingUser,
           first_name: firstName,
           last_name: lastName,
           name: firstName,
-          surname: lastName,
-          phone: profile.phone,
+          surname: lastName, 
           email: profile.email
         };
-        
+
         // Update in authService
         if (authService.updateUser) {
           authService.updateUser(updatedUser);
         }
-        
+
         // Update in localStorage
         localStorage.setItem('sentinel_user', JSON.stringify(updatedUser));
         setUserData(updatedUser);
       }
-      
+
       localStorage.setItem('profileData', JSON.stringify(profile));
       showToast('Profile updated successfully!', 'success');
     } catch (e) {
@@ -314,7 +292,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
         showToast('❌ Please select an image file', 'error');
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) {
         showToast('❌ Image size should be less than 5MB', 'error');
         return;
@@ -343,7 +321,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
 
   const startCamera = async () => {
     setCameraError(null);
-    
+
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -362,9 +340,9 @@ const Profile = ({ onLogout, onSelectScan }) => {
         },
         audio: false
       });
-      
+
       setStream(mediaStream);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         videoRef.current.onloadedmetadata = () => {
@@ -393,15 +371,15 @@ const Profile = ({ onLogout, onSelectScan }) => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
+
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
       setCapturedPhoto(imageData);
-      
+
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         setStream(null);
@@ -441,11 +419,11 @@ const Profile = ({ onLogout, onSelectScan }) => {
       });
       setStream(null);
     }
-    
+
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-    
+
     setShowCameraModal(false);
     setCapturedPhoto(null);
     setCameraError(null);
@@ -615,48 +593,48 @@ const Profile = ({ onLogout, onSelectScan }) => {
     // Fallback: Generate findings from scan status data
     const score = scan.score || 0;
     const findings = [];
-    
+
     // SSL/TLS
     let sslStatus = 'pass';
     let sslDetail = 'Valid certificate';
     if (scan.sslStatus === 'expired') { sslStatus = 'fail'; sslDetail = 'Certificate expired'; }
     else if (scan.sslStatus === 'expiring') { sslStatus = 'warn'; sslDetail = 'Certificate expires soon'; }
-    
+
     findings.push({
       label: 'SSL/TLS',
       detail: sslDetail,
       status: sslStatus,
       severity: sslStatus === 'pass' ? 'low' : sslStatus === 'warn' ? 'medium' : 'high',
-      impact: sslStatus === 'pass' ? 'SSL/TLS encryption protects data in transit.' : 
-               sslStatus === 'warn' ? 'Expiring certificates will soon cause security warnings.' : 
-               'Invalid certificates leave data vulnerable to interception.',
-      recommendation: sslStatus === 'pass' ? 'Certificate is valid and secure.' : 
-                      sslStatus === 'warn' ? '⚠️ Renew certificate within 30 days.' : 
-                      '🚨 Renew SSL certificate immediately.'
+      impact: sslStatus === 'pass' ? 'SSL/TLS encryption protects data in transit.' :
+        sslStatus === 'warn' ? 'Expiring certificates will soon cause security warnings.' :
+          'Invalid certificates leave data vulnerable to interception.',
+      recommendation: sslStatus === 'pass' ? 'Certificate is valid and secure.' :
+        sslStatus === 'warn' ? '⚠️ Renew certificate within 30 days.' :
+          '🚨 Renew SSL certificate immediately.'
     });
 
     // Security Headers
     let headerStatus = 'pass';
     let headerDetail = 'All headers present';
-    if (scan.cspStatus === 'missing' || scan.hstsStatus === 'missing') { 
-      headerStatus = 'fail'; 
-      headerDetail = 'Critical headers missing'; 
-    } else if (scan.cspStatus === 'partial' || scan.hstsStatus === 'weak') { 
-      headerStatus = 'warn'; 
-      headerDetail = 'Some headers missing or weak'; 
+    if (scan.cspStatus === 'missing' || scan.hstsStatus === 'missing') {
+      headerStatus = 'fail';
+      headerDetail = 'Critical headers missing';
+    } else if (scan.cspStatus === 'partial' || scan.hstsStatus === 'weak') {
+      headerStatus = 'warn';
+      headerDetail = 'Some headers missing or weak';
     }
-    
+
     findings.push({
       label: 'Security Headers',
       detail: headerDetail,
       status: headerStatus,
       severity: headerStatus === 'pass' ? 'low' : headerStatus === 'warn' ? 'medium' : 'high',
-      impact: headerStatus === 'pass' ? 'Headers protect against web attacks.' : 
-               headerStatus === 'warn' ? 'Missing headers expose website to attacks.' : 
-               'Critical headers missing - website vulnerable to XSS and clickjacking.',
-      recommendation: headerStatus === 'pass' ? 'Headers are properly configured.' : 
-                      headerStatus === 'warn' ? '⚠️ Add missing security headers.' : 
-                      '🚨 Implement Content-Security-Policy, HSTS, X-Frame-Options, and X-Content-Type-Options.'
+      impact: headerStatus === 'pass' ? 'Headers protect against web attacks.' :
+        headerStatus === 'warn' ? 'Missing headers expose website to attacks.' :
+          'Critical headers missing - website vulnerable to XSS and clickjacking.',
+      recommendation: headerStatus === 'pass' ? 'Headers are properly configured.' :
+        headerStatus === 'warn' ? '⚠️ Add missing security headers.' :
+          '🚨 Implement Content-Security-Policy, HSTS, X-Frame-Options, and X-Content-Type-Options.'
     });
 
     // DNS Configuration
@@ -664,18 +642,18 @@ const Profile = ({ onLogout, onSelectScan }) => {
     let dnsDetail = 'Properly configured';
     if (scan.spfStatus === 'missing') { dnsStatus = 'fail'; dnsDetail = 'SPF missing'; }
     else if (scan.spfStatus === 'partial') { dnsStatus = 'warn'; dnsDetail = 'SPF partially configured'; }
-    
+
     findings.push({
       label: 'DNS Configuration',
       detail: dnsDetail,
       status: dnsStatus,
       severity: dnsStatus === 'pass' ? 'low' : dnsStatus === 'warn' ? 'medium' : 'high',
-      impact: dnsStatus === 'pass' ? 'Proper DNS ensures email security.' : 
-               dnsStatus === 'warn' ? 'DNS issues could lead to email problems.' : 
-               'Misconfigured DNS leaves domain vulnerable to spoofing.',
-      recommendation: dnsStatus === 'pass' ? 'DNS is properly configured.' : 
-                      dnsStatus === 'warn' ? '⚠️ Fix DNS configuration issues.' : 
-                      '🚨 Reconfigure DNS records and set up SPF, DKIM, DMARC.'
+      impact: dnsStatus === 'pass' ? 'Proper DNS ensures email security.' :
+        dnsStatus === 'warn' ? 'DNS issues could lead to email problems.' :
+          'Misconfigured DNS leaves domain vulnerable to spoofing.',
+      recommendation: dnsStatus === 'pass' ? 'DNS is properly configured.' :
+        dnsStatus === 'warn' ? '⚠️ Fix DNS configuration issues.' :
+          '🚨 Reconfigure DNS records and set up SPF, DKIM, DMARC.'
     });
 
     // Network Security
@@ -683,18 +661,18 @@ const Profile = ({ onLogout, onSelectScan }) => {
     let netDetail = 'No open ports';
     if (scan.portsStatus === 'exposed') { netStatus = 'fail'; netDetail = 'Critical ports exposed'; }
     else if (scan.portsStatus === 'warning') { netStatus = 'warn'; netDetail = 'Some services exposed'; }
-    
+
     findings.push({
       label: 'Network Security',
       detail: netDetail,
       status: netStatus,
       severity: netStatus === 'pass' ? 'low' : netStatus === 'warn' ? 'medium' : 'high',
-      impact: netStatus === 'pass' ? 'Network minimizes attack surface.' : 
-               netStatus === 'warn' ? 'Exposed services provide attack entry points.' : 
-               'Open ports provide direct entry for attackers.',
-      recommendation: netStatus === 'pass' ? 'All ports are properly secured.' : 
-                      netStatus === 'warn' ? '⚠️ Close unnecessary open ports.' : 
-                      '🚨 Immediately close exposed critical ports.'
+      impact: netStatus === 'pass' ? 'Network minimizes attack surface.' :
+        netStatus === 'warn' ? 'Exposed services provide attack entry points.' :
+          'Open ports provide direct entry for attackers.',
+      recommendation: netStatus === 'pass' ? 'All ports are properly secured.' :
+        netStatus === 'warn' ? '⚠️ Close unnecessary open ports.' :
+          '🚨 Immediately close exposed critical ports.'
     });
 
     return findings;
@@ -704,9 +682,17 @@ const Profile = ({ onLogout, onSelectScan }) => {
 
   const totalScans = scanHistory.length;
   const avgScore = totalScans > 0 ? Math.round(scanHistory.reduce((acc, curr) => acc + (curr.score || 0), 0) / totalScans) : 0;
-  const passedScans = scanHistory.filter(s => s.status === 'Secure' || s.status === 'Passed').length;
-  const failedScans = scanHistory.filter(s => s.status === 'Critical' || s.status === 'Failed').length;
-  const warnScans = scanHistory.filter(s => s.status === 'Needs Improvement' || s.status === 'Warning').length;
+  const passedScans = scanHistory.filter(
+    s => (s.score || 0) >= 80
+  ).length;
+
+  const warnScans = scanHistory.filter(
+    s => (s.score || 0) >= 50 && (s.score || 0) < 80
+  ).length;
+
+  const failedScans = scanHistory.filter(
+    s => (s.score || 0) < 50
+  ).length;
 
   const getScoreClass = (score) => {
     if (score >= 80) return 'score-high';
@@ -754,7 +740,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
             <p className="profile-subtitle">Manage your account settings and view your security activity</p>
           </div>
           <div className="profile-header-actions">
-            <button 
+            <button
               className="profile-edit-btn cursor-target"
               onClick={() => setIsEditing(!isEditing)}
             >
@@ -769,14 +755,14 @@ const Profile = ({ onLogout, onSelectScan }) => {
         {/* Left Column - Profile Card */}
         <div className="profile-card">
           <div className="profile-avatar-wrapper">
-            <div 
+            <div
               className={`profile-avatar ${getProfileImageUrl() ? 'has-image' : 'no-image'}`}
               onClick={() => getProfileImageUrl() && setShowFullImage(true)}
               style={{ cursor: getProfileImageUrl() ? 'pointer' : 'default' }}
             >
               {getProfileImageUrl() ? (
-                <img 
-                  src={getProfileImageUrl()} 
+                <img
+                  src={getProfileImageUrl()}
                   alt={profile.name}
                   className="profile-avatar-image"
                 />
@@ -784,20 +770,20 @@ const Profile = ({ onLogout, onSelectScan }) => {
                 <span className="avatar-initial">{getFirstLetter()}</span>
               )}
             </div>
-            
+
             <div className="profile-avatar-actions" ref={menuRef}>
-              <button 
+              <button
                 className="profile-avatar-btn edit-btn cursor-target"
                 onClick={() => setShowMenu(!showMenu)}
               >
                 <PenSquare size={14} />
                 <span>Edit</span>
               </button>
-              
+
               {showMenu && (
                 <div className="edit-menu">
                   {getProfileImageUrl() && (
-                    <button 
+                    <button
                       className="menu-item cursor-target"
                       onClick={() => {
                         setShowMenu(false);
@@ -808,14 +794,14 @@ const Profile = ({ onLogout, onSelectScan }) => {
                       <span>View photo</span>
                     </button>
                   )}
-                  <button 
+                  <button
                     className="menu-item cursor-target"
                     onClick={handleTakePhoto}
                   >
                     <Camera size={14} />
                     <span>Take photo</span>
                   </button>
-                  <button 
+                  <button
                     className="menu-item cursor-target"
                     onClick={handleUploadClick}
                   >
@@ -823,7 +809,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
                     <span>Upload photo</span>
                   </button>
                   {getProfileImageUrl() && (
-                    <button 
+                    <button
                       className="menu-item remove cursor-target"
                       onClick={handleRemovePhoto}
                     >
@@ -834,7 +820,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
                 </div>
               )}
             </div>
-            
+
             <input
               ref={fileInputRef}
               type="file"
@@ -842,7 +828,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
               style={{ display: 'none' }}
               onChange={handleFileUpload}
             />
-            
+
             {isUploading && (
               <div className="profile-uploading">
                 <div className="upload-spinner"></div>
@@ -850,7 +836,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
               </div>
             )}
           </div>
-          
+
           <div className="profile-name">{profile.name}</div>
           <div className="profile-role">{profile.role}</div>
           <div className="profile-badge">
@@ -871,10 +857,10 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <div className="profile-detail-value">
                 <User size={16} />
                 {isEditing ? (
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="name"
-                    value={profile.name} 
+                    value={profile.name}
                     className="profile-input cursor-target"
                     onChange={handleInputChange}
                   />
@@ -889,10 +875,10 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <div className="profile-detail-value">
                 <Mail size={16} />
                 {isEditing ? (
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     name="email"
-                    value={profile.email} 
+                    value={profile.email}
                     className="profile-input cursor-target"
                     onChange={handleInputChange}
                   />
@@ -902,30 +888,9 @@ const Profile = ({ onLogout, onSelectScan }) => {
               </div>
             </div>
 
-            <div className="profile-detail-item">
-              <label>Role</label>
-              <div className="profile-detail-value">
-                <Shield size={16} />
-                <span>{profile.role}</span>
-              </div>
-            </div>
+            
 
-            <div className="profile-detail-item">
-              <label>Phone</label>
-              <div className="profile-detail-value">
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    name="phone"
-                    value={profile.phone} 
-                    className="profile-input cursor-target"
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  <span>{profile.phone}</span>
-                )}
-              </div>
-            </div>
+           
 
             <div className="profile-detail-item">
               <label>Member Since</label>
@@ -1020,8 +985,8 @@ const Profile = ({ onLogout, onSelectScan }) => {
         <div className="profile-scans-list">
           {scanHistory.length > 0 ? (
             scanHistory.map((scan) => (
-              <div 
-                key={scan.id} 
+              <div
+                key={scan.id}
                 className="profile-scan-item clickable"
                 onClick={() => handleScanClick(scan)}
                 style={{ cursor: 'pointer' }}
@@ -1090,7 +1055,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
 
       {/* ===== FULL IMAGE MODAL ===== */}
       {showFullImage && getProfileImageUrl() && (
-        <div 
+        <div
           className="full-image-overlay"
           onClick={() => setShowFullImage(false)}
         >
@@ -1100,13 +1065,13 @@ const Profile = ({ onLogout, onSelectScan }) => {
           >
             ✕
           </button>
-          
-          <div 
+
+          <div
             className="full-image-container"
             onClick={(e) => e.stopPropagation()}
           >
-            <img 
-              src={getProfileImageUrl()} 
+            <img
+              src={getProfileImageUrl()}
               alt={profile.name}
               className="full-image"
             />
@@ -1128,7 +1093,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="camera-modal-body">
               {cameraError ? (
                 <div className="camera-error">
@@ -1155,15 +1120,15 @@ const Profile = ({ onLogout, onSelectScan }) => {
                 </div>
               )}
             </div>
-            
+
             <div className="camera-modal-footer">
               {!capturedPhoto ? (
                 <>
                   <button className="camera-btn cancel cursor-target" onClick={closeCamera}>
                     Cancel
                   </button>
-                  <button 
-                    className="camera-btn capture cursor-target" 
+                  <button
+                    className="camera-btn capture cursor-target"
                     onClick={capturePhoto}
                     disabled={cameraError}
                   >
@@ -1192,12 +1157,12 @@ const Profile = ({ onLogout, onSelectScan }) => {
             <button className="popup-close cursor-target" onClick={closePopup}>
               <X size={20} />
             </button>
-            
+
             <div className="popup-header">
-              <div className="popup-icon" style={{ 
-                background: (selectedScan.score || 0) >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' : 
-                           (selectedScan.score || 0) >= 60 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' : 
-                           'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+              <div className="popup-icon" style={{
+                background: (selectedScan.score || 0) >= 80 ? 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' :
+                  (selectedScan.score || 0) >= 60 ? 'linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%)' :
+                    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
               }}>
                 <Shield size={28} />
               </div>
@@ -1208,7 +1173,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
             </div>
 
             <div className="popup-score-section">
-              <div className="popup-score-circle" style={{ 
+              <div className="popup-score-circle" style={{
                 borderColor: (selectedScan.score || 0) >= 80 ? '#43e97b' : (selectedScan.score || 0) >= 60 ? '#fdcb6e' : '#f5576c',
                 color: (selectedScan.score || 0) >= 80 ? '#43e97b' : (selectedScan.score || 0) >= 60 ? '#fdcb6e' : '#f5576c'
               }}>

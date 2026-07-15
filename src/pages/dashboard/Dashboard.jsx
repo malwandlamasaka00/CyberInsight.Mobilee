@@ -1,6 +1,6 @@
 // src/pages/dashboard/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { historyService } from '../../services/historyService';
+import { api } from '../../api/api';
 import { useNavigate } from 'react-router-dom';
 import { 
   Shield, Plus, FileText,
@@ -22,7 +22,8 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
-  
+  const [userName, setUserName] = useState('User');
+
   useEffect(() => {
     loadDashboard();
   }, []);
@@ -33,46 +34,74 @@ const Dashboard = () => {
     return "Critical";
   };
 
-  const loadDashboard = () => {
-    const history = historyService.getHistory();
+  const loadDashboard = async () => {
+    try {
+      const [userResponse, scansResponse] = await Promise.all([
+        api.get('/auth/me'),
+        api.get('/scans')
+      ]);
 
-    const totalScans = history.length;
+      const user = userResponse.data;
+      console.log("USER:", user);
 
-    const overallScore = totalScans > 0
-      ? Math.round(history.reduce((sum, scan) => sum + Number(scan.score || 0), 0) / totalScans)
-      : 0;
+      const fullName =
+  `${user.first_name || ""} ${user.last_name || ""}`.trim();
 
-    const issuesFound = history.reduce((sum, scan) => sum + getIssuesFoundCount(scan), 0);
-    const passedChecks = history.reduce((sum, scan) => sum + getPassedChecksCount(scan), 0);
+setUserName(fullName || user.email || "User");
 
-    const recentScans = history.slice(0, 5).map((scan, index) => ({
-      id: index,
-      domain: scan.domain || scan.url,
-      date: scan.timestamp || scan.date || new Date().toISOString(),
-      score: scan.score,
-      status: getScanStatus(scan.score),
-      issuesFound: getIssuesFoundCount(scan)
-    }));
-
-    const recentReports = history
-      .filter(scan => scan.reportGenerated)
-      .slice(0, 5)
-      .map((scan, index) => ({
-        id: index,
-        domain: scan.domain || scan.url,
-        generated: scan.timestamp,
-        size: "PDF",
-        type: "PDF"
+      const scans = scansResponse.data.map(scan => ({
+        id: scan.id,
+        domain: scan.url,
+        url: scan.url,
+        score: scan.security_score,
+        timestamp: scan.created_at,
+        date: scan.created_at,
+        checks: []
       }));
 
-    setData({
-      overallScore,
-      scansThisMonth: totalScans,
-      issuesFound,
-      passedChecks,
-      recentScans,
-      recentReports
-    });
+      const totalScans = scans.length;
+
+      const overallScore =
+        totalScans > 0
+          ? Math.round(
+            scans.reduce(
+              (sum, scan) => sum + Number(scan.score || 0),
+              0
+            ) / totalScans
+          )
+          : 0;
+
+      const issuesFound = scans.filter(
+        scan => (scan.score || 0) < 50
+      ).length;
+
+      const passedChecks = scans.filter(
+        scan => (scan.score || 0) >= 80
+      ).length;
+
+      const recentScans = scans.slice(0, 5).map(scan => ({
+        id: scan.id,
+        domain: scan.domain || scan.url,
+        date: scan.date,
+        score: scan.score,
+        status: getScanStatus(scan.score),
+        issuesFound: scan.score < 50 ? 1 : 0
+      }));
+
+      const recentReports = [];
+
+      setData({
+        overallScore,
+        scansThisMonth: totalScans,
+        issuesFound,
+        passedChecks,
+        recentScans,
+        recentReports
+      });
+
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+    }
   };
 
   const [data, setData] = useState({
@@ -91,12 +120,12 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <ScanModal 
-        isOpen={isScanModalOpen} 
+      <ScanModal
+        isOpen={isScanModalOpen}
         onClose={() => {
           setIsScanModalOpen(false);
           loadDashboard();
-        }} 
+        }}
       />
 
       <div className="dashboard-content">
@@ -106,8 +135,8 @@ const Dashboard = () => {
             <p className="dashboard-subtitle">Real-time security intelligence monitoring</p>
           </div>
           <div className="header-actions">
-            <button 
-              className="btn-primary cursor-target" 
+            <button
+              className="btn-primary cursor-target"
               onClick={handleNewScan}
             >
               <Plus size={18} />
@@ -117,8 +146,8 @@ const Dashboard = () => {
         </div>
 
         {/* Welcome Card */}
-        <WelcomeCard 
-          userName="Samkelo Mazeka"
+        <WelcomeCard
+          userName={userName}
           scanCount={data.scansThisMonth}
         />
 

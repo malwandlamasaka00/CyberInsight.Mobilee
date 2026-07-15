@@ -341,50 +341,7 @@ const Scan = () => {
 
       setScanResults(formattedResults);
       
-      historyService.saveScan({
-        id: Date.now(),
-        domain: targetUrl.replace(/^https?:\/\//, ""),
-        date: new Date().toISOString(),
-        score: formattedResults.overallScore,
-        status:
-          formattedResults.overallScore >= 80
-            ? "Secure"
-            : formattedResults.overallScore >= 50
-            ? "Needs Improvement"
-            : "Critical",
-        checks: formattedResults.checks,
-        critical: formattedResults.checks.filter(c => c.status === "Failed").length,
-        sslStatus:
-          formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Passed"
-            ? "valid"
-            : formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Warning"
-            ? "expiring"
-            : "expired",
-        cspStatus:
-          formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
-            ? "configured"
-            : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
-            ? "partial"
-            : "missing",
-        hstsStatus:
-          formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
-            ? "enabled"
-            : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
-            ? "weak"
-            : "missing",
-        spfStatus:
-          formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Passed"
-            ? "configured"
-            : formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Warning"
-            ? "partial"
-            : "missing",
-        portsStatus:
-          formattedResults.checks.find(c => c.name === "Network Security")?.status === "Passed"
-            ? "secured"
-            : formattedResults.checks.find(c => c.name === "Network Security")?.status === "Warning"
-            ? "warning"
-            : "exposed"
-      });
+   
 
     } catch(error){
       console.error("Scan error:", error);
