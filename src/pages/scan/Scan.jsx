@@ -916,11 +916,7 @@ const Scan = () => {
                 </div>
                 <div>
                   <h2>{selectedCheck.title || selectedCheck.name}</h2>
-                  {selectedCheck.status && (
-                    <span className="scan-modal-status" style={{ color: selectedCheck.color }}>
-                      Status: {selectedCheck.status}
-                    </span>
-                  )}
+                  
                 </div>
               </div>
 
@@ -961,32 +957,7 @@ const Scan = () => {
                   <p>{selectedCheck.importance || 'No importance information available.'}</p>
                 </div>
 
-                {/* Risk Level */}
-                {selectedCheck.riskLevel && (
-                  <div className="scan-modal-section risk">
-                    <h3>
-                      <AlertCircle size={16} />
-                      Risk Level
-                    </h3>
-                    <span 
-                      className="scan-modal-risk" 
-                      style={{ 
-                        backgroundColor: 
-                          selectedCheck.riskLevel === 'Critical' ? '#ef444420' :
-                          selectedCheck.riskLevel === 'High' ? '#f9731620' :
-                          selectedCheck.riskLevel === 'Medium' ? '#eab30820' :
-                          '#22c55e20',
-                        color:
-                          selectedCheck.riskLevel === 'Critical' ? '#ef4444' :
-                          selectedCheck.riskLevel === 'High' ? '#f97316' :
-                          selectedCheck.riskLevel === 'Medium' ? '#eab308' :
-                          '#22c55e'
-                      }}
-                    >
-                      {selectedCheck.riskLevel}
-                    </span>
-                  </div>
-                )}
+                
 
                 {/* Recommendations */}
                 {selectedCheck.recommendations && selectedCheck.recommendations.length > 0 && (
@@ -1006,25 +977,11 @@ const Scan = () => {
                   </div>
                 )}
 
-                {/* Check Result if available */}
-                {selectedCheck.details && (
-                  <div className="scan-modal-section result">
-                    <h3>
-                      <Activity size={16} />
-                      Result Details
-                    </h3>
-                    <div className="scan-modal-result">
-                      <p>{selectedCheck.details}</p>
-                    </div>
-                  </div>
-                )}
+                
               </div>
 
               <div className="scan-modal-footer">
-                <button className="scan-modal-btn primary" onClick={closeModal}>
-                  <CheckCircle size={16} />
-                  Got It
-                </button>
+                
                 <button className="scan-modal-btn secondary" onClick={closeModal}>
                   Close
                 </button>

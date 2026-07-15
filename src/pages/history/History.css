@@ -1828,3 +1828,14 @@
     font-size: 12px;
   }
 }
+
+.col-critical {
+  text-align: center !important;
+}
+
+.critical-count,
+.no-critical {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

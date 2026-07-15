@@ -717,7 +717,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
   const getStatusLabel = (status) => {
     const statusLower = String(status).toLowerCase();
     if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') return 'Secure';
-    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'Warning';
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'Needs Improvement';
     if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') return 'Critical';
     return status;
   };
@@ -888,10 +888,6 @@ const Profile = ({ onLogout, onSelectScan }) => {
               </div>
             </div>
 
-            
-
-           
-
             <div className="profile-detail-item">
               <label>Member Since</label>
               <div className="profile-detail-value">
@@ -951,7 +947,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <AlertTriangle size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-label">Warnings</span>
+              <span className="stat-label">Needs Improvement</span>
               <span className="stat-value" style={{ color: '#fdcb6e' }}>{warnScans}</span>
             </div>
           </div>
@@ -1210,11 +1206,9 @@ const Profile = ({ onLogout, onSelectScan }) => {
             </div>
 
             <div className="popup-footer">
-              <button className="btn-primary cursor-target" onClick={closePopup}>
-                <CheckCircle size={16} /> Got It
-              </button>
+              
               <button className="btn-secondary cursor-target" onClick={closePopup}>
-                <X size={16} /> Close
+                 Close
               </button>
             </div>
           </div>
