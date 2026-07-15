@@ -55,7 +55,8 @@ const Profile = ({ onLogout, onSelectScan }) => {
   const [profile, setProfile] = useState({
     name: '',
     email: '',
-    
+    role: 'Security Administrator',
+    phone: '+1 (555) 123-4567',
     joined: '',
     lastActive: ''
   });
@@ -492,48 +493,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
     document.body.style.overflow = 'auto';
   };
 
-  // ===== GET STATUS HELPER FUNCTIONS =====
-  const getStatusFromScore = (score) => {
-    if (score >= 80) return "Secure";
-    if (score >= 50) return "Needs Improvement";
-    return "Critical";
-  };
-
-  const getStatusClass = (score) => {
-    if (score >= 80) return "pass";
-    if (score >= 50) return "warn";
-    return "fail";
-  };
-
-  const getStatusLabel = (status) => {
-    const statusLower = String(status).toLowerCase();
-    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') return 'Secure';
-    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'Needs Improvement';
-    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') return 'Critical';
-    return status;
-  };
-
-  const getScoreClass = (score) => {
-    if (score >= 80) return 'score-high';
-    if (score >= 60) return 'score-medium';
-    return 'score-low';
-  };
-
-  const getStatusIcon = (status) => {
-    const statusLower = String(status).toLowerCase();
-    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') {
-      return <CheckCircle size={16} style={{ color: '#43e97b' }} />;
-    }
-    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') {
-      return <AlertTriangle size={16} style={{ color: '#fdcb6e' }} />;
-    }
-    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') {
-      return <XCircle size={16} style={{ color: '#f5576c' }} />;
-    }
-    return <Shield size={16} style={{ color: '#94a3b8' }} />;
-  };
-
-  // ===== GET SCAN DETAILS WITH RECOMMENDATIONS =====
+  // ===== GET SCAN DETAILS WITH RECOMMENDATIONS (FROM HISTORY) =====
   const getScanDetails = (scan) => {
     // If scan has checks array, use it
     if (scan.checks && Array.isArray(scan.checks) && scan.checks.length > 0) {
@@ -744,11 +704,45 @@ const Profile = ({ onLogout, onSelectScan }) => {
 
   const totalScans = scanHistory.length;
   const avgScore = totalScans > 0 ? Math.round(scanHistory.reduce((acc, curr) => acc + (curr.score || 0), 0) / totalScans) : 0;
-  
-  // Use the same status logic as History page
-  const passedScans = scanHistory.filter(s => (s.score || 0) >= 80).length;
-  const failedScans = scanHistory.filter(s => (s.score || 0) < 50).length;
-  const warnScans = scanHistory.filter(s => (s.score || 0) >= 50 && (s.score || 0) < 80).length;
+  const passedScans = scanHistory.filter(s => s.status === 'Secure' || s.status === 'Passed').length;
+  const failedScans = scanHistory.filter(s => s.status === 'Critical' || s.status === 'Failed').length;
+  const warnScans = scanHistory.filter(s => s.status === 'Needs Improvement' || s.status === 'Warning').length;
+
+  const getScoreClass = (score) => {
+    if (score >= 80) return 'score-high';
+    if (score >= 60) return 'score-medium';
+    return 'score-low';
+  };
+
+  const getStatusIcon = (status) => {
+    const statusLower = String(status).toLowerCase();
+    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') {
+      return <CheckCircle size={16} style={{ color: '#43e97b' }} />;
+    }
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') {
+      return <AlertTriangle size={16} style={{ color: '#fdcb6e' }} />;
+    }
+    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') {
+      return <XCircle size={16} style={{ color: '#f5576c' }} />;
+    }
+    return <Shield size={16} style={{ color: '#94a3b8' }} />;
+  };
+
+  const getStatusLabel = (status) => {
+    const statusLower = String(status).toLowerCase();
+    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') return 'Secure';
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'Warning';
+    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') return 'Critical';
+    return status;
+  };
+
+  const getStatusClass = (status) => {
+    const statusLower = String(status).toLowerCase();
+    if (statusLower === 'secure' || statusLower === 'passed' || statusLower === 'pass') return 'pass';
+    if (statusLower === 'needs improvement' || statusLower === 'warning' || statusLower === 'warn') return 'warn';
+    if (statusLower === 'critical' || statusLower === 'failed' || statusLower === 'fail') return 'fail';
+    return 'warn';
+  };
 
   return (
     <div className="profile-container">
@@ -908,9 +902,46 @@ const Profile = ({ onLogout, onSelectScan }) => {
               </div>
             </div>
 
-            
+            <div className="profile-detail-item">
+              <label>Role</label>
+              <div className="profile-detail-value">
+                <Shield size={16} />
+                <span>{profile.role}</span>
+              </div>
+            </div>
 
-            
+            <div className="profile-detail-item">
+              <label>Phone</label>
+              <div className="profile-detail-value">
+                {isEditing ? (
+                  <input 
+                    type="text" 
+                    name="phone"
+                    value={profile.phone} 
+                    className="profile-input cursor-target"
+                    onChange={handleInputChange}
+                  />
+                ) : (
+                  <span>{profile.phone}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="profile-detail-item">
+              <label>Member Since</label>
+              <div className="profile-detail-value">
+                <Calendar size={16} />
+                <span>{profile.joined}</span>
+              </div>
+            </div>
+
+            <div className="profile-detail-item">
+              <label>Last Active</label>
+              <div className="profile-detail-value">
+                <Activity size={16} />
+                <span>{profile.lastActive}</span>
+              </div>
+            </div>
           </div>
 
           {isEditing && (
@@ -937,8 +968,8 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <Shield size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-label">TOTAL SCANS</span>
-              <span className="stat-value">{totalScans}</span>
+              <span className="stat-label">Avg Security Score</span>
+              <span className="stat-value">{avgScore}</span>
             </div>
           </div>
           <div className="stat-card-mini">
@@ -946,7 +977,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <CheckCircle size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-label">SECURE</span>
+              <span className="stat-label">Secure</span>
               <span className="stat-value" style={{ color: '#43e97b' }}>{passedScans}</span>
             </div>
           </div>
@@ -955,7 +986,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <AlertTriangle size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-label">NEEDS IMPROVEMENT</span>
+              <span className="stat-label">Warnings</span>
               <span className="stat-value" style={{ color: '#fdcb6e' }}>{warnScans}</span>
             </div>
           </div>
@@ -964,17 +995,17 @@ const Profile = ({ onLogout, onSelectScan }) => {
               <XCircle size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-label">CRITICAL</span>
+              <span className="stat-label">Critical</span>
               <span className="stat-value" style={{ color: '#f5576c' }}>{failedScans}</span>
             </div>
           </div>
           <div className="stat-card-mini">
             <div className="stat-icon-mini" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
-              <TrendingUp size={20} />
+              <Globe size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-label">AVG SCORE</span>
-              <span className="stat-value">{avgScore}%</span>
+              <span className="stat-label">Total Scans</span>
+              <span className="stat-value">{totalScans}</span>
             </div>
           </div>
         </div>
@@ -997,7 +1028,7 @@ const Profile = ({ onLogout, onSelectScan }) => {
               >
                 <div className="scan-item-left">
                   <span className="scan-status-icon">
-                    {getStatusIcon(getStatusFromScore(scan.score || 0))}
+                    {getStatusIcon(scan.status)}
                   </span>
                   <div className="scan-item-info">
                     <span className="scan-url">{scan.domain || scan.url || 'Unknown'}</span>
@@ -1009,8 +1040,8 @@ const Profile = ({ onLogout, onSelectScan }) => {
                     {scan.score || 0}
                   </span>
                   <span className="scan-status-badge">
-                    <span className={`badge-${getStatusClass(scan.score || 0)}`}>
-                      {getStatusFromScore(scan.score || 0)}
+                    <span className={`badge-${getStatusClass(scan.status)}`}>
+                      {getStatusLabel(scan.status)}
                     </span>
                   </span>
                   <span className="scan-view-icon">
@@ -1184,9 +1215,9 @@ const Profile = ({ onLogout, onSelectScan }) => {
                 {selectedScan.score || 0}
               </div>
               <div className="popup-score-info">
-                <h3>Security Score: {getStatusFromScore(selectedScan.score || 0)}</h3>
-                <p>Status: <span className={`status-badge ${getStatusClass(selectedScan.score || 0)}`}>
-                  {getStatusFromScore(selectedScan.score || 0)}
+                <h3>Security Score: {(selectedScan.score || 0) >= 80 ? 'Good' : (selectedScan.score || 0) >= 60 ? 'Fair' : 'Poor'}</h3>
+                <p>Status: <span className={`status-badge ${getStatusClass(selectedScan.status)}`}>
+                  {getStatusLabel(selectedScan.status)}
                 </span></p>
               </div>
             </div>

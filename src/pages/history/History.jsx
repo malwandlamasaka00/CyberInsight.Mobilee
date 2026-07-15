@@ -44,397 +44,167 @@ const History = () => {
     setScans(history);
   }, []); 
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'score-green';
-    if (score >= 50) return 'score-yellow';
-    return 'score-red';
-  };
+ const getScoreColor = (score) => {
+  if (score >= 80) return 'score-green';
+  if (score >= 50) return 'score-yellow';
+  return 'score-red';
+};
+const getStatusFromScore = (score) => {
+  if (score >= 80) return "Secure";
+  if (score >= 50) return "Needs Improvement";
+  return "Critical";
+};
 
-  const getStatusFromScore = (score) => {
-    if (score >= 80) return "Secure";
-    if (score >= 50) return "Needs Improvement";
-    return "Critical";
-  };
-
-  const getStatusBadge = (score) => {
-    if (score >= 80) {
-      return (
-        <span className="status-badge secure">
-          <CheckCircle size={11} /> Secure
-        </span>
-      );
-    }
-
-    if (score >= 50) {
-      return (
-        <span className="status-badge moderate">
-          <AlertTriangle size={11} /> Needs Improvement
-        </span>
-      );
-    }
-
+const getStatusBadge = (score) => {
+  if (score >= 80) {
     return (
-      <span className="status-badge critical">
-        <XCircle size={11} /> Critical
+      <span className="status-badge secure">
+        <CheckCircle size={11} /> Secure
       </span>
     );
-  };
+  }
+
+  if (score >= 50) {
+    return (
+      <span className="status-badge moderate">
+        <AlertTriangle size={11} /> Needs Improvement
+      </span>
+    );
+  }
+
+  return (
+    <span className="status-badge critical">
+      <XCircle size={11} /> Critical
+    </span>
+  );
+};
 
   const getScoreIcon = (score) => {
-    if (score >= 80) return <CheckCircle size={14} className="icon-green" />;
-    if (score >= 50) return <AlertTriangle size={14} className="icon-yellow" />;
-    return <XCircle size={14} className="icon-red" />;
-  };
+  if (score >= 80) return <CheckCircle size={14} className="icon-green" />;
+  if (score >= 50) return <AlertTriangle size={14} className="icon-yellow" />;
+  return <XCircle size={14} className="icon-red" />;
+};
 
   // Generate detailed findings for a scan with PDF-based recommendations
-  const getScanDetails = (scan) => {
-    // If scan has checks array and it's not empty, use it
-    if (scan.checks && Array.isArray(scan.checks) && scan.checks.length > 0) {
-      return scan.checks.map(check => {
-        const isPassed = check.status === "Passed";
-        const isWarning = check.status === "Warning";
-        const isFailed = check.status === "Failed";
+const getScanDetails = (scan) => {
+  if (!Array.isArray(scan.checks)) return [];
 
-        // Get recommendation based on check name and status
-        const getRecommendation = (checkName, status) => {
-          const isPass = status === "Passed";
-          const isWarn = status === "Warning";
-          const isFail = status === "Failed";
+  return scan.checks.map(check => {
+    const isPassed = check.status === "Passed";
+    const isWarning = check.status === "Warning";
+    const isFailed = check.status === "Failed";
 
-          // SSL/TLS Recommendations
-          if (checkName === "SSL/TLS") {
-            if (isPass) return "✅ SSL certificate is valid and secure. No action required.";
-            if (isWarn) return "⚠️ Certificate expires soon. Renew within 30 days.";
-            return "🚨 SSL certificate is invalid or expired. Renew immediately.";
-          }
+    // Get recommendation based on check name and status
+    const getRecommendation = (checkName, status) => {
+      const isPass = status === "Passed";
+      const isWarn = status === "Warning";
+      const isFail = status === "Failed";
 
-          // HTTP Security Headers Recommendations
-          if (checkName === "Security Headers") {
-            if (isPass) return "✅ All security headers are properly configured.";
-            if (isWarn) return "⚠️ Some security headers missing. Implement CSP, HSTS, X-Frame-Options.";
-            return "🚨 Critical headers missing. Implement security headers immediately.";
-          }
+      // SSL/TLS Recommendations
+      if (checkName === "SSL/TLS") {
+        if (isPass) return "SSL certificate is valid and secure. No action required.";
+        if (isWarn) return " Certificate expires soon. Renew your SSL certificate within 30 days to maintain secure HTTPS connections.";
+        return " SSL certificate is invalid or expired. Immediately renew your SSL certificate to prevent security warnings and protect user data in transit.";
+      }
 
-          // DNS Configuration Recommendations
-          if (checkName === "DNS Configuration") {
-            if (isPass) return "✅ DNS is properly configured. Consider adding SPF, DKIM, DMARC.";
-            if (isWarn) return "⚠️ DNS issues detected. Review A, MX, and TXT records.";
-            return "🚨 DNS is misconfigured. Correct DNS records and configure SPF, DKIM, DMARC.";
-          }
+      // HTTP Security Headers Recommendations
+      if (checkName === "Security Headers") {
+        if (isPass) return "All security headers are properly configured. Your website is well-protected  against web attacks.";
+        if (isWarn) return " Some security headers are missing. Implement headers to improve security.";
+        return " Critical security headers are missing. Implement security headers to prevent MIME sniffing.";
+      }
 
-          // Network Security Recommendations
-          if (checkName === "Network Security") {
-            if (isPass) return "✅ No open ports detected. Network is secured.";
-            if (isWarn) return "⚠️ Some services exposed. Close unnecessary ports.";
-            return "🚨 Critical services exposed. Close all unnecessary open ports immediately.";
-          }
+      // DNS Configuration Recommendations
+      if (checkName === "DNS Configuration") {
+        if (isPass) return "DNS is properly configured. Consider implementing SPF, DKIM, and DMARC for additional email security.";
+        if (isWarn) return " DNS configuration issues detected. Review your A records, MX records, and TXT records. Ensure proper SPF configuration to prevent email spoofing.";
+        return " DNS is misconfigured. Immediately review and correct your DNS records. ";
+      }
 
-          // WHOIS Information Recommendations
-          if (checkName === "WHOIS Information") {
-            if (isPass) return "✅ Domain information verified. Keep WHOIS details updated.";
-            if (isWarn) return "⚠️ Domain registration issues detected. Review registration details.";
-            return "🚨 Domain information missing or invalid. Verify and update WHOIS details.";
-          }
+      // Network Security Recommendations
+      if (checkName === "Network Security") {
+        if (isPass) return "No open ports detected. Your network is properly secured. Continue monitoring for any changes.";
+        if (isWarn) return " Some unnecessary services are exposed. Review and close unnecessary open ports. Restrict access to essential services only.";
+        return "Critical services are exposed. Immediately close all unnecessary open ports, Unauthorized access could compromise your infrastructure.";
+      }
 
-          // Technology Detection Recommendations
-          if (checkName === "Technologies") {
-            if (isPass) return "✅ No vulnerable technologies detected. Keep all technologies updated.";
-            if (isWarn) return "⚠️ Outdated technologies found. Update to latest versions.";
-            return "🚨 Vulnerable technologies detected. Update immediately to secure versions.";
-          }
+      // WHOIS Information Recommendations
+      if (checkName === "WHOIS Information") {
+        if (isPass) return "Domain information verified. Keep WHOIS details up to date and consider using WHOIS privacy protection.";
+        if (isWarn) return " Domain registration issues detected. Review your domain registration details and ensure all information is current.";
+        return " Domain information is missing or invalid. Verify domain registration details, keep WHOIS information up to date.";
+      }
 
-          // Default recommendation
-          if (isPass) return "✅ Check passed. No action required.";
-          if (isWarn) return "⚠️ Review and address the issue.";
-          return "🚨 Critical issue. Immediate action required.";
-        };
+     /*// Technology Detection Recommendations
+      if (checkName === "Technologies") {
+        if (isPass) return "No vulnerable technologies detected. Keep all technologies updated to latest versions for continued security.";
+        if (isWarn) return " Outdated technologies found. Update to the latest versions of all technologies. Replace outdated or vulnerable components.";
+        return " Vulnerable technologies detected. Immediately update all technologies to their latest secure versions.";
+      }*/
 
-        // Get impact based on check name and status
-        const getImpact = (checkName, status) => {
-          const isPass = status === "Passed";
-          const isWarn = status === "Warning";
-          const isFail = status === "Failed";
+      // Default recommendation
+      if (isPass) return "Check passed. No action required.";
+      if (isWarn) return " Review and address the issue to improve security.";
+      return " Critical issue. Immediate action required.";
+    };
 
-          if (checkName === "SSL/TLS") {
-            if (isPass) return "SSL/TLS encryption protects data in transit.";
-            if (isWarn) return "Expiring certificates will cause security warnings.";
-            return "Invalid certificates expose all transmitted data to interception.";
-          }
+    // Get impact based on check name and status
+    const getImpact = (checkName, status) => {
+      const isPass = status === "Passed";
+      const isWarn = status === "Warning";
+      const isFail = status === "Failed";
 
-          if (checkName === "Security Headers") {
-            if (isPass) return "Headers protect against XSS, clickjacking, and MIME sniffing.";
-            if (isWarn) return "Missing headers expose website to web-based attacks.";
-            return "Missing critical headers leave website vulnerable to attacks.";
-          }
+      if (checkName === "SSL/TLS") {
+        if (isPass) return "SSL/TLS encryption protects data in transit between users and your website.";
+        if (isWarn) return "Expiring certificates will soon cause security warnings and potential data exposure.";
+        return "Invalid certificates leave all data transmitted between users and your website vulnerable to interception and attacks.";
+      }
 
-          if (checkName === "DNS Configuration") {
-            if (isPass) return "Proper DNS ensures reliable domain resolution and email security.";
-            if (isWarn) return "DNS issues can lead to email delivery problems.";
-            return "Misconfigured DNS allows spoofing and potential domain takeover.";
-          }
+      if (checkName === "Security Headers") {
+        if (isPass) return "Properly configured security headers protect against web attacks.";
+        if (isWarn) return "Missing headers leave your website partially exposed to web-based attacks.";
+        return "Missing security headers leave your website vulnerable to  web threats.";
+      }
 
-          if (checkName === "Network Security") {
-            if (isPass) return "Secure network configuration minimizes attack surface.";
-            if (isWarn) return "Exposed services provide additional entry points for attackers.";
-            return "Open ports provide direct entry points for attackers.";
-          }
+      if (checkName === "DNS Configuration") {
+        if (isPass) return "Proper DNS configuration ensures reliable domain resolution and email security.";
+        if (isWarn) return "DNS issues can lead to email delivery problems and potential domain takeover.";
+        return "Misconfigured DNS leaves your domain vulnerable to spoofing, email interception, and potential takeover.";
+      }
 
-          if (checkName === "WHOIS Information") {
-            if (isPass) return "Valid domain information helps establish trust.";
-            if (isWarn) return "Registration issues could affect domain ownership verification.";
-            return "Missing or invalid information could indicate fraud or ownership issues.";
-          }
+      if (checkName === "Network Security") {
+        if (isPass) return "Secure network configuration minimizes attack surface and protects infrastructure.";
+        if (isWarn) return "Exposed services provide additional entry points that attackers could exploit.";
+        return "Open ports and exposed services provide direct entry points for attackers to compromise your infrastructure.";
+      }
 
-          if (checkName === "Technologies") {
-            if (isPass) return "Up-to-date technologies reduce known vulnerabilities.";
-            if (isWarn) return "Outdated technologies contain known vulnerabilities.";
-            return "Vulnerable technologies are common entry points for attackers.";
-          }
+      if (checkName === "WHOIS Information") {
+        if (isPass) return "Valid domain information helps establish trust and proper domain management.";
+        if (isWarn) return "Domain registration issues could affect domain ownership verification.";
+        return "Missing or invalid domain information could indicate domain ownership issues or potential fraud.";
+      }
 
-          return isPass ? "✅ Security check passed." : isWarn ? "⚠️ Security concern detected." : "🚨 Critical security issue detected.";
-        };
+      if (checkName === "Technologies") {
+        if (isPass) return "Up-to-date technologies reduce the risk of known vulnerabilities.";
+        if (isWarn) return "Outdated technologies contain known vulnerabilities that attackers actively exploit.";
+        return "Vulnerable technologies are common entry points for attackers and must be updated immediately.";
+      }
 
-        return {
-          label: check.name,
-          detail: check.details || "Check completed",
-          status: isPassed ? "pass" : isWarning ? "warn" : "fail",
-          severity: isPassed ? "low" : isWarning ? "medium" : "high",
-          impact: getImpact(check.name, check.status),
-          recommendation: getRecommendation(check.name, check.status)
-        };
-      });
-    }
+      return isPass ? "Security check passed." : isWarn ? "Security concern detected." : "Critical security issue detected.";
+    };
 
-    // ===== FALLBACK: Generate findings from the scan's score and status =====
-    const score = scan.score || 0;
-    const findings = [];
-    
-    // Determine overall security level
-    const isSecure = score >= 80;
-    const isWarning = score >= 50 && score < 80;
-    const isCritical = score < 50;
+    return {
+      label: check.name,
+      detail: check.details || "Check completed",
+      status: isPassed ? "pass" : isWarning ? "warn" : "fail",
+      severity: isPassed ? "low" : isWarning ? "medium" : "high",
+      impact: getImpact(check.name, check.status),
+      recommendation: getRecommendation(check.name, check.status)
+    };
+  });
+};
 
-    // SSL/TLS - Use scan's sslStatus if available, otherwise infer from score
-    let sslStatus = 'pass';
-    let sslDetail = 'Valid certificate';
-    let sslRecommendation = '✅ SSL certificate is valid and secure. No action required.';
-    let sslImpact = 'SSL/TLS encryption protects data in transit.';
-
-    if (scan.sslStatus === 'expired') { 
-      sslStatus = 'fail'; 
-      sslDetail = 'Certificate expired'; 
-      sslRecommendation = '🚨 SSL certificate is expired. Renew immediately.';
-      sslImpact = 'Expired certificates expose all transmitted data to interception.';
-    } else if (scan.sslStatus === 'expiring') { 
-      sslStatus = 'warn'; 
-      sslDetail = 'Certificate expires soon'; 
-      sslRecommendation = '⚠️ Certificate expires soon. Renew within 30 days.';
-      sslImpact = 'Expiring certificates will cause security warnings.';
-    } else if (isCritical) {
-      sslStatus = 'fail';
-      sslDetail = 'Certificate validation failed';
-      sslRecommendation = '🚨 SSL certificate is invalid. Renew immediately.';
-      sslImpact = 'Invalid certificates expose all transmitted data to interception.';
-    } else if (isWarning) {
-      sslStatus = 'warn';
-      sslDetail = 'Certificate needs review';
-      sslRecommendation = '⚠️ Review SSL certificate configuration. Ensure it is valid and not expiring soon.';
-      sslImpact = 'SSL certificate issues could lead to security warnings.';
-    }
-    
-    findings.push({
-      label: 'SSL/TLS',
-      detail: sslDetail,
-      status: sslStatus,
-      severity: sslStatus === 'pass' ? 'low' : sslStatus === 'warn' ? 'medium' : 'high',
-      impact: sslImpact,
-      recommendation: sslRecommendation
-    });
-
-    // Security Headers
-    let headerStatus = 'pass';
-    let headerDetail = 'All headers present';
-    let headerRecommendation = '✅ All security headers are properly configured.';
-    let headerImpact = 'Headers protect against XSS, clickjacking, and MIME sniffing.';
-
-    if (scan.cspStatus === 'missing' || scan.hstsStatus === 'missing') { 
-      headerStatus = 'fail'; 
-      headerDetail = 'Critical headers missing';
-      headerRecommendation = '🚨 Critical headers missing. Implement CSP, HSTS, X-Frame-Options, X-Content-Type-Options.';
-      headerImpact = 'Missing critical headers leave website vulnerable to attacks.';
-    } else if (scan.cspStatus === 'partial' || scan.hstsStatus === 'weak') { 
-      headerStatus = 'warn'; 
-      headerDetail = 'Some headers missing or weak';
-      headerRecommendation = '⚠️ Some headers missing or weak. Implement CSP, HSTS, X-Frame-Options.';
-      headerImpact = 'Missing or weak headers expose website to web-based attacks.';
-    } else if (isCritical) {
-      headerStatus = 'fail';
-      headerDetail = 'Headers not properly configured';
-      headerRecommendation = '🚨 Critical headers missing. Implement security headers immediately.';
-      headerImpact = 'Missing security headers leave website vulnerable to attacks.';
-    } else if (isWarning) {
-      headerStatus = 'warn';
-      headerDetail = 'Some headers missing';
-      headerRecommendation = '⚠️ Review security headers. Ensure CSP, HSTS, X-Frame-Options are configured.';
-      headerImpact = 'Missing security headers could expose website to various web attacks.';
-    }
-    
-    findings.push({
-      label: 'Security Headers',
-      detail: headerDetail,
-      status: headerStatus,
-      severity: headerStatus === 'pass' ? 'low' : headerStatus === 'warn' ? 'medium' : 'high',
-      impact: headerImpact,
-      recommendation: headerRecommendation
-    });
-
-    // DNS Configuration
-    let dnsStatus = 'pass';
-    let dnsDetail = 'Properly configured';
-    let dnsRecommendation = '✅ DNS is properly configured. Consider adding SPF, DKIM, DMARC.';
-    let dnsImpact = 'Proper DNS ensures reliable domain resolution and email security.';
-
-    if (scan.spfStatus === 'missing') { 
-      dnsStatus = 'fail'; 
-      dnsDetail = 'SPF missing';
-      dnsRecommendation = '🚨 SPF records missing. Configure SPF, DKIM, DMARC immediately.';
-      dnsImpact = 'Misconfigured DNS allows spoofing and potential domain takeover.';
-    } else if (scan.spfStatus === 'partial') { 
-      dnsStatus = 'warn'; 
-      dnsDetail = 'SPF partially configured';
-      dnsRecommendation = '⚠️ SPF incomplete. Fix SPF records and consider DKIM, DMARC.';
-      dnsImpact = 'Incomplete DNS configuration could lead to email delivery problems.';
-    } else if (isCritical) {
-      dnsStatus = 'fail';
-      dnsDetail = 'DNS misconfigured';
-      dnsRecommendation = '🚨 DNS misconfigured. Correct DNS records and configure SPF, DKIM, DMARC.';
-      dnsImpact = 'Misconfigured DNS leaves domain vulnerable to spoofing and takeover.';
-    } else if (isWarning) {
-      dnsStatus = 'warn';
-      dnsDetail = 'DNS needs review';
-      dnsRecommendation = '⚠️ Review DNS configuration. Ensure SPF, DKIM, DMARC are set up.';
-      dnsImpact = 'DNS issues could lead to email delivery problems and security risks.';
-    }
-    
-    findings.push({
-      label: 'DNS Configuration',
-      detail: dnsDetail,
-      status: dnsStatus,
-      severity: dnsStatus === 'pass' ? 'low' : dnsStatus === 'warn' ? 'medium' : 'high',
-      impact: dnsImpact,
-      recommendation: dnsRecommendation
-    });
-
-    // Network Security
-    let netStatus = 'pass';
-    let netDetail = 'No open ports';
-    let netRecommendation = '✅ No open ports detected. Network is secured.';
-    let netImpact = 'Secure network configuration minimizes attack surface.';
-
-    if (scan.portsStatus === 'exposed') { 
-      netStatus = 'fail'; 
-      netDetail = 'Critical ports exposed';
-      netRecommendation = '🚨 Critical services exposed. Close all unnecessary open ports immediately.';
-      netImpact = 'Open ports provide direct entry points for attackers.';
-    } else if (scan.portsStatus === 'warning') { 
-      netStatus = 'warn'; 
-      netDetail = 'Some services exposed';
-      netRecommendation = '⚠️ Some services exposed. Close unnecessary open ports.';
-      netImpact = 'Exposed services provide additional entry points for attackers.';
-    } else if (isCritical) {
-      netStatus = 'fail';
-      netDetail = 'Network security issues detected';
-      netRecommendation = '🚨 Network security issues detected. Close unnecessary ports and implement firewalls.';
-      netImpact = 'Network vulnerabilities could provide entry points for attackers.';
-    } else if (isWarning) {
-      netStatus = 'warn';
-      netDetail = 'Network needs review';
-      netRecommendation = '⚠️ Review network security configuration. Ensure unnecessary ports are closed.';
-      netImpact = 'Network configuration issues could provide additional attack vectors.';
-    }
-    
-    findings.push({
-      label: 'Network Security',
-      detail: netDetail,
-      status: netStatus,
-      severity: netStatus === 'pass' ? 'low' : netStatus === 'warn' ? 'medium' : 'high',
-      impact: netImpact,
-      recommendation: netRecommendation
-    });
-
-    // WHOIS Information
-    let whoisStatus = 'pass';
-    let whoisDetail = 'Domain information verified';
-    let whoisRecommendation = '✅ Domain information verified. Keep WHOIS details updated.';
-    let whoisImpact = 'Valid domain information helps establish trust.';
-
-    if (isCritical) {
-      whoisStatus = 'fail';
-      whoisDetail = 'Domain information invalid';
-      whoisRecommendation = '🚨 Domain information missing or invalid. Verify and update WHOIS details.';
-      whoisImpact = 'Missing or invalid information could indicate fraud or ownership issues.';
-    } else if (isWarning) {
-      whoisStatus = 'warn';
-      whoisDetail = 'Domain needs review';
-      whoisRecommendation = '⚠️ Review domain registration details. Ensure all information is current.';
-      whoisImpact = 'Registration issues could affect domain ownership verification.';
-    }
-    
-    findings.push({
-      label: 'WHOIS Information',
-      detail: whoisDetail,
-      status: whoisStatus,
-      severity: whoisStatus === 'pass' ? 'low' : whoisStatus === 'warn' ? 'medium' : 'high',
-      impact: whoisImpact,
-      recommendation: whoisRecommendation
-    });
-
-    // Technologies
-    let techStatus = 'pass';
-    let techDetail = 'No vulnerable technologies detected';
-    let techRecommendation = '✅ No vulnerable technologies detected. Keep all technologies updated.';
-    let techImpact = 'Up-to-date technologies reduce known vulnerabilities.';
-
-    if (isCritical) {
-      techStatus = 'fail';
-      techDetail = 'Vulnerable technologies detected';
-      techRecommendation = '🚨 Vulnerable technologies detected. Update immediately to secure versions.';
-      techImpact = 'Vulnerable technologies are common entry points for attackers.';
-    } else if (isWarning) {
-      techStatus = 'warn';
-      techDetail = 'Outdated technologies found';
-      techRecommendation = '⚠️ Outdated technologies found. Update to latest versions.';
-      techImpact = 'Outdated technologies contain known vulnerabilities.';
-    }
-    
-    findings.push({
-      label: 'Technologies',
-      detail: techDetail,
-      status: techStatus,
-      severity: techStatus === 'pass' ? 'low' : techStatus === 'warn' ? 'medium' : 'high',
-      impact: techImpact,
-      recommendation: techRecommendation
-    });
-
-    return findings;
-  };
-
-  const getCriticalIssuesCount = (scan) => {
-    if (!scan) return 0;
-    
-    // If scan has checks array, count failed and warning checks
-    if (scan.checks && Array.isArray(scan.checks) && scan.checks.length > 0) {
-      return scan.checks.filter(check => 
-        check.status === "Failed" || check.status === "Warning"
-      ).length;
-    }
-    
-    // Fallback: Count based on score
-    const score = scan.score || 0;
-    if (score >= 80) return 0;
-    if (score >= 50) return 1;
-    return 2;
-  };
+  const getCriticalIssuesCount = getIssuesFoundCount;
 
   // Handle scan click - opens popup
   const handleScanClick = (scan) => {
@@ -495,7 +265,7 @@ const History = () => {
   const passCount = scans.filter(s => s.score >= 80).length;
   const warnCount = scans.filter(s => s.score >= 50 && s.score < 80).length;
   const failCount = scans.filter(s => s.score < 50).length;
-  const avgScore = scans.length > 0 ? Math.round(scans.reduce((acc, s) => acc + s.score, 0) / scans.length) : 0;
+  const avgScore = Math.round(scans.reduce((acc, s) => acc + s.score, 0) / scans.length);
 
   // ===== TOAST NOTIFICATION - TOP RIGHT =====
   const showToast = (message, type = 'success') => {
@@ -581,14 +351,15 @@ const History = () => {
               <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Date</th>
               <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Score</th>
               <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Status</th>
+              <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Issues Found</th>
             </tr>
           </thead>
           <tbody>
       `;
       
       filteredScans.forEach(scan => {
-        const statusText = getStatusFromScore(scan.score);
-        const statusColor = scan.score >= 80 ? '#43e97b' : scan.score >= 50 ? '#fdcb6e' : '#f5576c';
+        const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Needs Improvement' : 'Critical';
+        const statusColor = scan.status === 'pass' ? '#43e97b' : scan.status === 'warn' ? '#fdcb6e' : '#f5576c';
         htmlContent += `
           <tr style="border-bottom: 1px solid #f1f5f9;">
             <td style="padding: 10px 12px; font-weight: 500;">${scan.domain}</td>
@@ -597,6 +368,7 @@ const History = () => {
             <td style="padding: 10px 12px;">
               <span style="background: ${statusColor}15; color: ${statusColor}; padding: 2px 10px; border-radius: 12px; font-weight: 600; font-size: 11px;">${statusText}</span>
             </td>
+            <td style="padding: 10px 12px; text-align: center;">${getCriticalIssuesCount(scan) > 0 ? getCriticalIssuesCount(scan) : '✓'}
           </tr>
         `;
       });
@@ -671,9 +443,8 @@ const History = () => {
         width: 800px;
       `;
       
-      const statusColor = scan.score >= 80 ? '#43e97b' : scan.score >= 50 ? '#fdcb6e' : '#f5576c';
-      const statusText = getStatusFromScore(scan.score);
-      const issuesCount = getCriticalIssuesCount(scan);
+      const statusColor = scan.status === 'pass' ? '#43e97b' : scan.status === 'warn' ? '#fdcb6e' : '#f5576c';
+      const statusText = scan.status === 'pass' ? 'Secure' : scan.status === 'warn' ? 'Needs Improvement' : 'Critical';
       
       let findingsHTML = '';
       findings.forEach(f => {
@@ -714,7 +485,7 @@ const History = () => {
           <div style="font-size: 12px; color: #64748b; display: flex; gap: 24px;">
             <span><strong>Date:</strong> ${new Date(scan.date).toLocaleString()}</span>
             <span><strong>Scan ID:</strong> #${scan.id}</span>
-            <span><strong>Issues Found:</strong> ${issuesCount > 0 ? issuesCount : 'None'}</span>
+            <span><strong>Issues Found:</strong> ${getCriticalIssuesCount(scan) > 0 ? getCriticalIssuesCount(scan) : 'None'}</span>
           </div>
         </div>
         
@@ -901,6 +672,7 @@ const History = () => {
               <th className="col-date">Date</th>
               <th className="col-score">Score</th>
               <th className="col-status">Status</th>
+              <th className="col-critical">Issues Found</th>
               <th className="col-actions">Actions</th>
             </tr>
           </thead>
@@ -926,6 +698,15 @@ const History = () => {
                   <td className="col-status">
                     {getStatusBadge(scan.score)}
                   </td>
+                  <td className="col-critical">
+                     {getCriticalIssuesCount(scan) > 0 ? (
+                         <span className="critical-count">
+                      {getCriticalIssuesCount(scan)}
+                          </span>
+                       ) : (
+                    <span className="no-critical">✓ None</span>
+                  )}
+                </td>
                   <td className="col-actions">
                     <div className="actions-cell">
                       <button 
@@ -959,7 +740,7 @@ const History = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="empty-state">
+                <td colSpan="6" className="empty-state">
                   <div className="empty-state-content">
                     <Search size={40} className="empty-icon" />
                     <h3>No scans found</h3>
@@ -1047,7 +828,7 @@ const History = () => {
               </div>
               <div className="popup-score-info">
                 <h3>
-                  Security Score: {
+                   Security Score: {
                     selectedScan.score >= 80
                       ? 'Secure'
                       : selectedScan.score >= 50
@@ -1068,36 +849,37 @@ const History = () => {
                   >
                     {getStatusFromScore(selectedScan.score)}
                   </span>
-                </p>
+</p>
                 <div className="popup-stats-mini">
                   <span><CheckCircle size={14} /> {getCriticalIssuesCount(selectedScan) === 0 ? 'No Issues Found' : `${getCriticalIssuesCount(selectedScan)} Issues Found`}</span>
                 </div>
               </div>
             </div>
 
-<div className="popup-findings">
-  <h4><Info size={18} /> Detailed Findings</h4>
-  {getScanDetails(selectedScan).map((finding, index) => (
-    <div key={index} className={`popup-finding-item ${finding.status}`}>
-      <div className="finding-icon">
-        {finding.status === 'pass' && <CheckCircle size={18} style={{ color: '#43e97b' }} />}
-        {finding.status === 'warn' && <AlertTriangle size={18} style={{ color: '#fdcb6e' }} />}
-        {finding.status === 'fail' && <XCircle size={18} style={{ color: '#f5576c' }} />}
-      </div>
-      <div className="finding-content">
-        <div className="finding-label">{finding.label}</div>
-        <div className="finding-detail">{finding.detail}</div>
-        <div className="finding-impact"><strong>Impact:</strong> {finding.impact}</div>
-        <div className="finding-recommendation">
-          <Lightbulb size={14} /> <strong>Recommendation:</strong> {finding.recommendation}
-        </div>
-      </div>
-      <div className={`finding-severity ${finding.severity}`}>{finding.severity}</div>
-    </div>
-  ))}
-</div>
+            <div className="popup-findings">
+              <h4><Info size={18} /> Detailed Findings</h4>
+              {getScanDetails(selectedScan).map((finding, index) => (
+                <div key={index} className={`popup-finding-item ${finding.status}`}>
+                  <div className="finding-icon">
+                    {finding.status === 'pass' && <CheckCircle size={18} style={{ color: '#43e97b' }} />}
+                    {finding.status === 'warn' && <AlertTriangle size={18} style={{ color: '#fdcb6e' }} />}
+                    {finding.status === 'fail' && <XCircle size={18} style={{ color: '#f5576c' }} />}
+                  </div>
+                  <div className="finding-content">
+                    <div className="finding-label">{finding.label}</div>
+                    <div className="finding-detail">{finding.detail}</div>
+                    <div className="finding-impact"><strong>Impact:</strong> {finding.impact}</div>
+                    <div className="finding-recommendation">
+                      <Lightbulb size={14} /> <strong>Recommendation:</strong> {finding.recommendation}
+                    </div>
+                  </div>
+                  <div className={`finding-severity ${finding.severity}`}>{finding.severity}</div>
+                </div>
+              ))}
+            </div>
 
             <div className="popup-footer">
+              
               <button className="btn-secondary" onClick={closePopup}>
                 <X size={16} /> Close
               </button>
