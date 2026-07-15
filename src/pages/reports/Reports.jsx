@@ -1,413 +1,361 @@
 // src/pages/reports/Reports.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  FileText, Download, Eye, Calendar, Shield, 
-  Search, ChevronLeft, ChevronRight,
-  Clock, Award, AlertTriangle, CheckCircle,
-  X, Plus, BarChart3, PieChart, TrendingUp, TrendingDown,
-  Filter, RefreshCw, Printer
+  FileText, 
+  Download, 
+  Eye, 
+  Trash2, 
+  Search,
+  Filter,
+  Calendar,
+  ChevronDown,
+  QrCode,
+  Share2,
+  Copy,
+  Check,
+  X,
+  ExternalLink,
+  RefreshCw,
+  Link
 } from 'lucide-react';
+import QRCodeGenerator from '../../components/QRCodeGenerator';
 import './Reports.css';
 
 const Reports = () => {
+  const [qrCodes, setQrCodes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filterType, setFilterType] = useState('all');
+  const [selectedQR, setSelectedQR] = useState(null);
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [qrToDelete, setQrToDelete] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
 
-  const reports = [
-    { 
-      id: 1, 
-      domain: 'example.com', 
-      generated: '2026-07-09T15:00:00Z', 
-      size: '2.4 MB', 
-      type: 'Full Security Report',
-      status: 'Ready',
-      score: 92,
-      findings: 3,
-      critical: 0,
-      warnings: 2,
-      passed: 12
-    },
-    { 
-      id: 2, 
-      domain: 'test-site.org', 
-      generated: '2026-07-09T12:30:00Z', 
-      size: '1.8 MB', 
-      type: 'SSL Report',
-      status: 'Ready',
-      score: 65,
-      findings: 8,
-      critical: 2,
-      warnings: 4,
-      passed: 6
-    },
-    { 
-      id: 3, 
-      domain: 'myapp.io', 
-      generated: '2026-07-08T19:00:00Z', 
-      size: '3.1 MB', 
-      type: 'Full Security Report',
-      status: 'Ready',
-      score: 45,
-      findings: 15,
-      critical: 4,
-      warnings: 6,
-      passed: 4
-    },
-    { 
-      id: 4, 
-      domain: 'secure-site.com', 
-      generated: '2026-07-08T10:00:00Z', 
-      size: '2.1 MB', 
-      type: 'Headers Report',
-      status: 'Ready',
-      score: 88,
-      findings: 5,
-      critical: 1,
-      warnings: 3,
-      passed: 10
-    },
-    { 
-      id: 5, 
-      domain: 'api-service.net', 
-      generated: '2026-07-07T16:20:00Z', 
-      size: '1.2 MB', 
-      type: 'DNS Report',
-      status: 'Processing',
-      score: 71,
-      findings: 6,
-      critical: 2,
-      warnings: 3,
-      passed: 8
-    },
-    { 
-      id: 6, 
-      domain: 'ecommerce-store.org', 
-      generated: '2026-07-07T09:45:00Z', 
-      size: '4.2 MB', 
-      type: 'Full Security Report',
-      status: 'Ready',
-      score: 55,
-      findings: 12,
-      critical: 3,
-      warnings: 5,
-      passed: 5
+  useEffect(() => {
+    loadQRCodes();
+  }, []);
+
+  const loadQRCodes = () => {
+    try {
+      const saved = localStorage.getItem('qrCodes');
+      if (saved) {
+        setQrCodes(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error loading QR codes:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const getStatusBadge = (status) => {
-    if (status === 'Ready') {
-      return (
-        <span className="report-status ready">
-          <CheckCircle size={12} />
-          Ready
-        </span>
-      );
+  const saveQRCodes = (updatedQrCodes) => {
+    localStorage.setItem('qrCodes', JSON.stringify(updatedQrCodes));
+    setQrCodes(updatedQrCodes);
+  };
+
+  const handleGenerateQR = () => {
+    if (!manualUrl.trim()) {
+      alert('Please enter a URL to generate a QR code');
+      return;
     }
-    return (
-      <span className="report-status processing">
-        <Clock size={12} />
-        Processing
-      </span>
-    );
+    
+    // Create a new QR code entry
+    const newQR = {
+      id: `qr-${Date.now()}`,
+      url: manualUrl,
+      domain: manualUrl.replace(/^https?:\/\//, '').split('/')[0],
+      createdAt: new Date().toISOString()
+    };
+    setSelectedQR(newQR);
+    setShowQRGenerator(true);
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return '#22c55e';
-    if (score >= 60) return '#eab308';
-    if (score >= 40) return '#f97316';
-    return '#ef4444';
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleGenerateQR();
+    }
   };
 
-  const getScoreLabel = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Needs Improvement';
-    return 'Critical';
+  const handleQRGenerated = (qrDataUrl) => {
+    // Create a new QR code entry with the data URL
+    const newQRCode = {
+      id: `qr-${Date.now()}`,
+      url: manualUrl,
+      domain: manualUrl.replace(/^https?:\/\//, '').split('/')[0],
+      dataUrl: qrDataUrl,
+      createdAt: new Date().toISOString()
+    };
+    
+    const updatedQrCodes = [newQRCode, ...qrCodes];
+    saveQRCodes(updatedQrCodes);
+    setManualUrl('');
+    setShowQRGenerator(false);
+    setSelectedQR(null);
   };
 
-  const openModal = (report) => {
-    setSelectedReport(report);
-    setIsModalOpen(true);
+  const handleDeleteQR = (qrId) => {
+    setQrToDelete(qrId);
+    setShowDeleteModal(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedReport(null);
+  const confirmDelete = () => {
+    const updatedQrCodes = qrCodes.filter(qr => qr.id !== qrToDelete);
+    saveQRCodes(updatedQrCodes);
+    setShowDeleteModal(false);
+    setQrToDelete(null);
   };
 
-  const filteredReports = reports.filter(report => {
-    const matchesSearch = report.domain.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === 'all' || report.type.includes(filterType);
-    return matchesSearch && matchesFilter;
+  const handleCopyUrl = (url) => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleOpenWebsite = (url) => {
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleRegenerateQR = (qr) => {
+    setSelectedQR(qr);
+    setManualUrl(qr.url);
+    setShowQRGenerator(true);
+  };
+
+  const filteredQRCodes = qrCodes.filter(qr => {
+    return qr.domain?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           qr.url?.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Get QR code for the generator
+  const getQRUrl = () => {
+    if (selectedQR) {
+      return selectedQR.url;
+    }
+    return manualUrl || '';
+  };
+
+  if (loading) {
+    return (
+      <div className="reports-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading QR codes...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="reports-container">
       {/* Header */}
       <div className="reports-header">
         <div>
-          <h1 className="reports-title">Security Reports</h1>
-          <p className="reports-subtitle">Generate and manage detailed security reports</p>
+          <h1 className="reports-title">QR Code Generator</h1>
+          <p className="reports-subtitle">Generate and manage QR codes for any website</p>
         </div>
-        <div className="reports-header-actions">
-          <button className="reports-header-btn cursor-target">
-            <RefreshCw size={16} />
-            Refresh
-          </button>
-          <button className="generate-report-btn cursor-target">
-            <Plus size={16} />
-            Generate Report
+      </div>
+
+      {/* URL Input Bar for QR Generation */}
+      <div className="reports-url-bar">
+        <div className="url-input-wrapper">
+          <Link size={18} className="url-input-icon" />
+          <input
+            type="url"
+            placeholder="Paste a URL here to generate a QR code (e.g., https://example.com)"
+            value={manualUrl}
+            onChange={(e) => setManualUrl(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="reports-url-input"
+          />
+          <button 
+            className="url-generate-btn"
+            onClick={handleGenerateQR}
+            disabled={!manualUrl.trim()}
+          >
+            <QrCode size={18} />
+            Generate QR
           </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="reports-stats">
-        <div className="reports-stat">
-          <FileText size={16} className="stat-icon" />
-          <div>
-            <span className="stat-value">{reports.length}</span>
-            <span className="stat-label">Total Reports</span>
-          </div>
-        </div>
-        <div className="reports-stat">
-          <CheckCircle size={16} className="stat-icon" style={{ color: 'var(--green)' }} />
-          <div>
-            <span className="stat-value">{reports.filter(r => r.status === 'Ready').length}</span>
-            <span className="stat-label">Ready</span>
-          </div>
-        </div>
-        <div className="reports-stat">
-          <Clock size={16} className="stat-icon" style={{ color: 'var(--yellow)' }} />
-          <div>
-            <span className="stat-value">{reports.filter(r => r.status === 'Processing').length}</span>
-            <span className="stat-label">Processing</span>
-          </div>
-        </div>
-        <div className="reports-stat">
-          <Award size={16} className="stat-icon" style={{ color: 'var(--blue)' }} />
-          <div>
-            <span className="stat-value">89%</span>
-            <span className="stat-label">Average Score</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="reports-filters">
-        <div className="search-wrapper">
+      {/* Search */}
+      <div className="reports-controls">
+        <div className="reports-search">
           <Search size={18} className="search-icon" />
           <input
             type="text"
-            placeholder="Search reports..."
+            placeholder="Search QR codes by domain..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input cursor-target"
+            className="reports-search-input"
           />
         </div>
-        <div className="filter-group">
-          <select 
-            className="filter-select cursor-target"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          >
-            <option value="all">All Reports</option>
-            <option value="Full Security Report">Full Security</option>
-            <option value="SSL Report">SSL/TLS</option>
-            <option value="Headers Report">Headers</option>
-            <option value="DNS Report">DNS</option>
-          </select>
-          <select className="filter-select cursor-target">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="highest">Highest Score</option>
-            <option value="lowest">Lowest Score</option>
-          </select>
+        <div className="reports-count">
+          {filteredQRCodes.length} QR code{filteredQRCodes.length !== 1 ? 's' : ''}
         </div>
       </div>
 
-      {/* Reports Table */}
-      <div className="reports-table-wrapper">
-        <table className="reports-table">
-          <thead>
-            <tr>
-              <th>Report</th>
-              <th>Domain</th>
-              <th>Type</th>
-              <th>Score</th>
-              <th>Findings</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredReports.map((report) => (
-              <tr key={report.id} className="cursor-target">
-                <td>
-                  <div className="report-name-cell">
-                    <div className="report-icon-small">
-                      <Shield size={14} />
-                    </div>
-                    <span>#{report.id.toString().padStart(4, '0')}</span>
+      {/* QR Codes Grid */}
+      {filteredQRCodes.length === 0 ? (
+        <div className="reports-empty">
+          <QrCode size={48} />
+          <h3>No QR codes generated yet</h3>
+          <p>Paste a URL above and click "Generate QR" to create your first QR code</p>
+        </div>
+      ) : (
+        <div className="reports-grid">
+          {filteredQRCodes.map((qr) => {
+            const date = new Date(qr.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            return (
+              <div key={qr.id} className="report-card">
+                <div className="report-card-header">
+                  <div className="report-card-title">
+                    <QrCode size={20} />
+                    <span>{qr.domain || 'Unknown'}</span>
                   </div>
-                </td>
-                <td className="domain-cell">{report.domain}</td>
-                <td className="type-cell">{report.type}</td>
-                <td className="score-cell">
-                  <span className="score-badge" style={{ 
-                    background: getScoreColor(report.score) + '20',
-                    color: getScoreColor(report.score)
-                  }}>
-                    {report.score}%
-                  </span>
-                </td>
-                <td className="findings-cell">
-                  <span className="findings-count">
-                    <AlertTriangle size={12} className="findings-icon" />
-                    {report.findings}
-                  </span>
-                </td>
-                <td className="date-cell">
-                  <Calendar size={14} />
-                  {new Date(report.generated).toLocaleDateString()}
-                </td>
-                <td>{getStatusBadge(report.status)}</td>
-                <td className="actions-cell">
-                  <button className="action-btn cursor-target" onClick={() => openModal(report)}>
-                    <Eye size={16} />
+                  <div className="report-card-actions">
+                    <button 
+                      className="report-action-btn"
+                      onClick={() => handleCopyUrl(qr.url)}
+                      title="Copy URL"
+                    >
+                      {copied ? <Check size={16} /> : <Copy size={16} />}
+                    </button>
+                    <button 
+                      className="report-action-btn"
+                      onClick={() => handleOpenWebsite(qr.url)}
+                      title="Open Website"
+                    >
+                      <ExternalLink size={16} />
+                    </button>
+                    <button 
+                      className="report-action-btn success"
+                      onClick={() => handleRegenerateQR(qr)}
+                      title="Regenerate QR Code"
+                    >
+                      <RefreshCw size={16} />
+                    </button>
+                    <button 
+                      className="report-action-btn danger"
+                      onClick={() => handleDeleteQR(qr.id)}
+                      title="Delete QR Code"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* QR Code Display */}
+                <div className="report-qr-container">
+                  <img 
+                    src={qr.dataUrl} 
+                    alt={`QR Code for ${qr.domain}`}
+                    className="report-qr-image"
+                  />
+                  <div className="report-qr-url">{qr.url}</div>
+                </div>
+
+                <div className="report-card-body">
+                  <div className="report-meta">
+                    <span className="report-meta-item">
+                      <Calendar size={14} />
+                      {date}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="report-card-footer">
+                  <button 
+                    className="report-view-btn"
+                    onClick={() => window.open(qr.url, '_blank')}
+                  >
+                    <ExternalLink size={16} />
+                    Open Website
                   </button>
-                  <button className="action-btn cursor-target">
+                  <button 
+                    className="report-download-btn"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.download = `qr-code-${qr.domain}.png`;
+                      link.href = qr.dataUrl;
+                      link.click();
+                    }}
+                  >
                     <Download size={16} />
+                    Download PNG
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="pagination">
-        <div className="pagination-info">
-          Showing 1-{filteredReports.length} of {reports.length} reports
-        </div>
-        <div className="pagination-controls">
-          <button className="page-btn cursor-target" disabled>
-            <ChevronLeft size={16} />
-          </button>
-          <button className="page-btn active cursor-target">1</button>
-          <button className="page-btn cursor-target">2</button>
-          <button className="page-btn cursor-target">
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Report Details Modal */}
-      {isModalOpen && selectedReport && (
-        <div className="report-modal-overlay" onClick={closeModal}>
-          <div className="report-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="report-modal-close cursor-target" onClick={closeModal}>
-              <X size={24} />
-            </button>
-
-            <div className="report-modal-header">
-              <div className="report-modal-title-wrapper">
-                <div className="report-modal-icon-wrapper">
-                  <FileText size={24} />
-                </div>
-                <div>
-                  <h2 className="report-modal-title">Report #{selectedReport.id.toString().padStart(4, '0')}</h2>
-                  <p className="report-modal-domain">{selectedReport.domain}</p>
                 </div>
               </div>
-              <div className="report-modal-status-badge">
-                {getStatusBadge(selectedReport.status)}
-              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* QR Generator Modal */}
+      {showQRGenerator && (
+        <QRCodeGenerator 
+          url={getQRUrl()}
+          onClose={() => {
+            setShowQRGenerator(false);
+            setSelectedQR(null);
+          }}
+          onGenerate={(dataUrl) => {
+            if (selectedQR) {
+              // Regenerating existing QR
+              const updatedQrCodes = qrCodes.map(qr => {
+                if (qr.id === selectedQR.id) {
+                  return { ...qr, dataUrl, regeneratedAt: new Date().toISOString() };
+                }
+                return qr;
+              });
+              saveQRCodes(updatedQrCodes);
+              setShowQRGenerator(false);
+              setSelectedQR(null);
+              setManualUrl('');
+            } else {
+              // New QR code
+              handleQRGenerated(dataUrl);
+            }
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="delete-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>Delete QR Code</h3>
+              <button className="delete-modal-close" onClick={() => setShowDeleteModal(false)}>
+                <X size={20} />
+              </button>
             </div>
-
-            <div className="report-modal-body">
-              {/* Score Overview */}
-              <div className="report-modal-score-section">
-                <div className="report-modal-score-display">
-                  <div className="report-modal-score-circle">
-                    <svg viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" strokeWidth="8" />
-                      <circle 
-                        cx="60" cy="60" r="50" 
-                        fill="none" 
-                        stroke={getScoreColor(selectedReport.score)} 
-                        strokeWidth="8" 
-                        strokeLinecap="round"
-                        strokeDasharray={314.16}
-                        strokeDashoffset={314.16 - (selectedReport.score / 100) * 314.16}
-                      />
-                    </svg>
-                    <div className="report-modal-score-center">
-                      <span className="report-modal-score-number">{selectedReport.score}%</span>
-                      <span className="report-modal-score-label-text" style={{ color: getScoreColor(selectedReport.score) }}>
-                        {getScoreLabel(selectedReport.score)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="report-modal-score-stats">
-                    <div className="report-modal-score-stat">
-                      <span className="stat-number">{selectedReport.passed}</span>
-                      <span className="stat-label">Passed</span>
-                    </div>
-                    <div className="report-modal-score-stat">
-                      <span className="stat-number" style={{ color: 'var(--yellow)' }}>{selectedReport.warnings}</span>
-                      <span className="stat-label">Warnings</span>
-                    </div>
-                    <div className="report-modal-score-stat">
-                      <span className="stat-number" style={{ color: 'var(--red)' }}>{selectedReport.critical}</span>
-                      <span className="stat-label">Critical</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Report Info */}
-              <div className="report-modal-info-grid">
-                <div className="report-modal-info-item">
-                  <span className="report-modal-info-label">Report Type</span>
-                  <span className="report-modal-info-value">{selectedReport.type}</span>
-                </div>
-                <div className="report-modal-info-item">
-                  <span className="report-modal-info-label">Generated</span>
-                  <span className="report-modal-info-value">
-                    {new Date(selectedReport.generated).toLocaleString()}
-                  </span>
-                </div>
-                <div className="report-modal-info-item">
-                  <span className="report-modal-info-label">File Size</span>
-                  <span className="report-modal-info-value">{selectedReport.size}</span>
-                </div>
-                <div className="report-modal-info-item">
-                  <span className="report-modal-info-label">Total Findings</span>
-                  <span className="report-modal-info-value">{selectedReport.findings}</span>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="report-modal-actions">
-                <button className="report-modal-action-btn primary cursor-target">
-                  <Download size={16} />
-                  Download Report
-                </button>
-                <button className="report-modal-action-btn secondary cursor-target">
-                  <Eye size={16} />
-                  View Full Report
-                </button>
-                <button className="report-modal-action-btn secondary cursor-target">
-                  <Printer size={16} />
-                  Print
-                </button>
-              </div>
+            <div className="delete-modal-body">
+              <p>Are you sure you want to delete this QR code?</p>
+              <p className="delete-modal-warning">This action cannot be undone.</p>
+            </div>
+            <div className="delete-modal-footer">
+              <button 
+                className="delete-modal-cancel"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="delete-modal-confirm"
+                onClick={confirmDelete}
+              >
+                <Trash2 size={16} />
+                Delete QR Code
+              </button>
             </div>
           </div>
         </div>

@@ -74,6 +74,18 @@ const Layout = ({ children }) => {
               <span>History</span>
             </Link>
           </div>
+
+            <div className="nav-section">
+            <span className="nav-section-title"> generate QR Code</span>
+            <Link 
+              to="/reports" 
+              className={`nav-item cursor-target ${isActive('/reports') ? 'active' : ''}`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FileText size={20} />
+              <span>QR Codes</span>
+            </Link>
+          </div>
           
           
           

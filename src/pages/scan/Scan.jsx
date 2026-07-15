@@ -844,6 +844,22 @@ const Scan = () => {
               })}
             </div>
           </div>
+
+          {/* Results Actions - Removed Generate QR button */}
+          <div className="scan-results-actions">
+            <button className="scan-action-btn primary cursor-target">
+              <FileText size={16} />
+              Generate Report
+            </button>
+            <button className="scan-action-btn secondary cursor-target">
+              <Download size={16} />
+              Export PDF
+            </button>
+            <button className="scan-action-btn secondary cursor-target">
+              <Eye size={16} />
+              View Details
+            </button>
+          </div>
         </div>
       )}
 
