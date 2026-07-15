@@ -1,10 +1,11 @@
 // src/pages/reports/Reports.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  Download, 
-  Eye, 
-  Trash2, 
+import { api } from "../../api/api";
+import {
+  FileText,
+  Download,
+  Eye,
+  Trash2,
   Search,
   Filter,
   Calendar,
@@ -36,40 +37,28 @@ const Reports = () => {
     loadQRCodes();
   }, []);
 
-  const loadQRCodes = () => {
+  const loadQRCodes = async () => {
     try {
-      const saved = localStorage.getItem('qrCodes');
-      if (saved) {
-        setQrCodes(JSON.parse(saved));
-      }
+      const response = await api.get("/qr-codes");
+      setQrCodes(response.data);
     } catch (error) {
-      console.error('Error loading QR codes:', error);
+      console.error("Error loading QR codes:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveQRCodes = (updatedQrCodes) => {
-    localStorage.setItem('qrCodes', JSON.stringify(updatedQrCodes));
-    setQrCodes(updatedQrCodes);
-  };
 
-  const handleGenerateQR = () => {
-    if (!manualUrl.trim()) {
-      alert('Please enter a URL to generate a QR code');
-      return;
-    }
-    
-    // Create a new QR code entry
-    const newQR = {
-      id: `qr-${Date.now()}`,
-      url: manualUrl,
-      domain: manualUrl.replace(/^https?:\/\//, '').split('/')[0],
-      createdAt: new Date().toISOString()
-    };
-    setSelectedQR(newQR);
-    setShowQRGenerator(true);
-  };
+
+const handleGenerateQR = () => {
+  if (!manualUrl.trim()) {
+    alert('Please enter a URL to generate a QR code');
+    return;
+  }
+
+  setSelectedQR(null);
+  setShowQRGenerator(true);
+};
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -77,18 +66,17 @@ const Reports = () => {
     }
   };
 
-  const handleQRGenerated = (qrDataUrl) => {
-    // Create a new QR code entry with the data URL
-    const newQRCode = {
-      id: `qr-${Date.now()}`,
+  const handleQRGenerated = async (qrDataUrl) => {
+
+
+
+    await api.post("/qr-codes", {
       url: manualUrl,
       domain: manualUrl.replace(/^https?:\/\//, '').split('/')[0],
-      dataUrl: qrDataUrl,
-      createdAt: new Date().toISOString()
-    };
-    
-    const updatedQrCodes = [newQRCode, ...qrCodes];
-    saveQRCodes(updatedQrCodes);
+      data_url: qrDataUrl
+    });
+
+    await loadQRCodes();
     setManualUrl('');
     setShowQRGenerator(false);
     setSelectedQR(null);
@@ -99,11 +87,17 @@ const Reports = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    const updatedQrCodes = qrCodes.filter(qr => qr.id !== qrToDelete);
-    saveQRCodes(updatedQrCodes);
-    setShowDeleteModal(false);
-    setQrToDelete(null);
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/qr-codes/${qrToDelete}`);
+
+      await loadQRCodes();
+
+      setShowDeleteModal(false);
+      setQrToDelete(null);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleCopyUrl = (url) => {
@@ -113,10 +107,20 @@ const Reports = () => {
   };
 
   const handleOpenWebsite = (url) => {
-    if (url) {
-      window.open(url, '_blank');
+    if (!url) return;
+
+    let safeUrl = url;
+
+    if (
+      !safeUrl.startsWith("http://") &&
+      !safeUrl.startsWith("https://")
+    ) {
+      safeUrl = `https://${safeUrl}`;
     }
+
+    window.open(safeUrl, "_blank", "noopener,noreferrer");
   };
+
 
   const handleRegenerateQR = (qr) => {
     setSelectedQR(qr);
@@ -126,7 +130,7 @@ const Reports = () => {
 
   const filteredQRCodes = qrCodes.filter(qr => {
     return qr.domain?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           qr.url?.toLowerCase().includes(searchTerm.toLowerCase());
+      qr.url?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   // Get QR code for the generator
@@ -162,13 +166,13 @@ const Reports = () => {
           <Link size={18} className="url-input-icon" />
           <input
             type="url"
-            placeholder="Paste a URL here to generate a QR code (e.g., https://example.com)"
+            placeholder="Paste a URL here to generate a QR code (e.g. https://example.com)"
             value={manualUrl}
             onChange={(e) => setManualUrl(e.target.value)}
             onKeyPress={handleKeyPress}
             className="reports-url-input"
           />
-          <button 
+          <button
             className="url-generate-btn"
             onClick={handleGenerateQR}
             disabled={!manualUrl.trim()}
@@ -206,7 +210,7 @@ const Reports = () => {
       ) : (
         <div className="reports-grid">
           {filteredQRCodes.map((qr) => {
-            const date = new Date(qr.createdAt).toLocaleDateString('en-US', {
+            const date = new Date(qr.created_at).toLocaleString('en-US', {
               year: 'numeric',
               month: 'short',
               day: 'numeric',
@@ -222,28 +226,28 @@ const Reports = () => {
                     <span>{qr.domain || 'Unknown'}</span>
                   </div>
                   <div className="report-card-actions">
-                    <button 
+                    <button
                       className="report-action-btn"
                       onClick={() => handleCopyUrl(qr.url)}
                       title="Copy URL"
                     >
                       {copied ? <Check size={16} /> : <Copy size={16} />}
                     </button>
-                    <button 
+                    <button
                       className="report-action-btn"
                       onClick={() => handleOpenWebsite(qr.url)}
                       title="Open Website"
                     >
                       <ExternalLink size={16} />
                     </button>
-                    <button 
+                    <button
                       className="report-action-btn success"
                       onClick={() => handleRegenerateQR(qr)}
                       title="Regenerate QR Code"
                     >
                       <RefreshCw size={16} />
                     </button>
-                    <button 
+                    <button
                       className="report-action-btn danger"
                       onClick={() => handleDeleteQR(qr.id)}
                       title="Delete QR Code"
@@ -255,8 +259,8 @@ const Reports = () => {
 
                 {/* QR Code Display */}
                 <div className="report-qr-container">
-                  <img 
-                    src={qr.dataUrl} 
+                  <img
+                    src={qr.data_url}
                     alt={`QR Code for ${qr.domain}`}
                     className="report-qr-image"
                   />
@@ -273,19 +277,19 @@ const Reports = () => {
                 </div>
 
                 <div className="report-card-footer">
-                  <button 
+                  <button
                     className="report-view-btn"
-                    onClick={() => window.open(qr.url, '_blank')}
+                    onClick={() => handleOpenWebsite(qr.url)}
                   >
                     <ExternalLink size={16} />
                     Open Website
                   </button>
-                  <button 
+                  <button
                     className="report-download-btn"
                     onClick={() => {
                       const link = document.createElement('a');
                       link.download = `qr-code-${qr.domain}.png`;
-                      link.href = qr.dataUrl;
+                      link.href = qr.data_url;
                       link.click();
                     }}
                   >
@@ -301,28 +305,34 @@ const Reports = () => {
 
       {/* QR Generator Modal */}
       {showQRGenerator && (
-        <QRCodeGenerator 
+        <QRCodeGenerator
           url={getQRUrl()}
           onClose={() => {
             setShowQRGenerator(false);
             setSelectedQR(null);
           }}
-          onGenerate={(dataUrl) => {
-            if (selectedQR) {
-              // Regenerating existing QR
-              const updatedQrCodes = qrCodes.map(qr => {
-                if (qr.id === selectedQR.id) {
-                  return { ...qr, dataUrl, regeneratedAt: new Date().toISOString() };
-                }
-                return qr;
-              });
-              saveQRCodes(updatedQrCodes);
-              setShowQRGenerator(false);
-              setSelectedQR(null);
-              setManualUrl('');
-            } else {
-              // New QR code
-              handleQRGenerated(dataUrl);
+          onGenerate={async (dataUrl) => {
+            try {
+              if (selectedQR?.id && typeof selectedQR.id === "number") {
+
+                await api.put(`/qr-codes/${selectedQR.id}`, {
+                  data_url: dataUrl
+                });
+
+                await loadQRCodes();
+
+                setShowQRGenerator(false);
+                setSelectedQR(null);
+                setManualUrl('');
+
+              } else {
+
+                await handleQRGenerated(dataUrl);
+
+              }
+
+            } catch (error) {
+              console.error("Failed to save QR code:", error);
             }
           }}
         />
@@ -343,13 +353,13 @@ const Reports = () => {
               <p className="delete-modal-warning">This action cannot be undone.</p>
             </div>
             <div className="delete-modal-footer">
-              <button 
+              <button
                 className="delete-modal-cancel"
                 onClick={() => setShowDeleteModal(false)}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="delete-modal-confirm"
                 onClick={confirmDelete}
               >
