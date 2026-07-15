@@ -39,7 +39,7 @@ const RecentReportsCard = ({ reports }) => {
         <div className="recent-reports-header">
           <h3 className="recent-reports-title">
             <FileText size={18} />
-            Recent Reports
+            Recent QR Reports
           </h3>
           <button className="view-all-btn cursor-target" onClick={() => navigate('/reports')}>
             View All

@@ -1,5 +1,5 @@
 // src/components/Layout/Layout.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Shield, 
@@ -10,37 +10,51 @@ import {
   User, 
   Menu, 
   LogOut,
-  FileText 
+  FileText,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import './Layout.css';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Auto-collapse on route change
+  useEffect(() => {
+    setIsCollapsed(true);
+  }, [location.pathname]);
 
   const isActive = (path) => {
     return location.pathname === path;
   };
 
   const handleLogout = () => {
-    // Add your logout logic here
-    // For now, just navigate to login page
     navigate('/login');
   };
 
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
-    <div className="layout-container">
-      {/* Sidebar */}
+    <div className={`layout-container ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {/* Mobile Overlay */}
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
+      {/* Sidebar */}
       <aside className={`layout-sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <Shield size={32} className="sidebar-logo-icon" />
-            <span className="sidebar-logo-text">Sentinel</span>
+            <Shield size={isCollapsed ? 28 : 32} className="sidebar-logo-icon" />
+            {!isCollapsed && <span className="sidebar-logo-text">CyberInsight</span>}
           </div>
+          <button className="sidebar-collapse-btn" onClick={toggleSidebar}>
+            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
             <X size={24} />
           </button>
@@ -48,75 +62,82 @@ const Layout = ({ children }) => {
         
         <nav className="sidebar-nav">
           <div className="nav-section">
-            <span className="nav-section-title">Main</span>
+            {!isCollapsed && <span className="nav-section-title">Main</span>}
             <Link 
               to="/dashboard" 
               className={`nav-item cursor-target ${isActive('/dashboard') ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
+              title={isCollapsed ? 'Dashboard' : ''}
             >
               <BarChart3 size={20} />
-              <span>Dashboard</span>
+              {!isCollapsed && <span>Dashboard</span>}
             </Link>
             <Link 
               to="/scan" 
               className={`nav-item cursor-target ${isActive('/scan') ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
+              title={isCollapsed ? 'Scan' : ''}
             >
               <Search size={20} />
-              <span>Scan</span>
+              {!isCollapsed && <span>Scan</span>}
             </Link>
             <Link 
               to="/history" 
               className={`nav-item cursor-target ${isActive('/history') ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
+              title={isCollapsed ? 'History' : ''}
             >
               <History size={20} />
-              <span>History</span>
+              {!isCollapsed && <span>History</span>}
             </Link>
           </div>
 
-            <div className="nav-section">
-            <span className="nav-section-title"> generate QR Code</span>
+          <div className="nav-section">
+            {!isCollapsed && <span className="nav-section-title">Tools</span>}
             <Link 
               to="/reports" 
               className={`nav-item cursor-target ${isActive('/reports') ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
+              title={isCollapsed ? 'QR Codes' : ''}
             >
               <FileText size={20} />
-              <span>QR Codes</span>
+              {!isCollapsed && <span>QR Codes</span>}
             </Link>
           </div>
           
-          
-          
           <div className="nav-section">
-            <span className="nav-section-title">Account</span>
+            {!isCollapsed && <span className="nav-section-title">Account</span>}
             <Link 
               to="/profile" 
               className={`nav-item cursor-target ${isActive('/profile') ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
+              title={isCollapsed ? 'Profile' : ''}
             >
               <User size={20} />
-              <span>Profile</span>
+              {!isCollapsed && <span>Profile</span>}
             </Link>
           </div>
         </nav>
         
         <div className="sidebar-footer">
-          {/* Logout Button */}
           <button 
             className="sidebar-logout-btn cursor-target" 
             onClick={handleLogout}
+            title={isCollapsed ? 'Logout' : ''}
           >
             <LogOut size={18} />
-            <span>Logout</span>
+            {!isCollapsed && <span>Logout</span>}
           </button>
           
-          <div className="sidebar-status">
-            <div className="status-indicator online" />
-            <span>System Online</span>
-          </div>
-          <div className="sidebar-version">v1.0.0</div>
+          {!isCollapsed && (
+            <>
+              <div className="sidebar-status">
+                <div className="status-indicator online" />
+                <span>System Online</span>
+              </div>
+              <div className="sidebar-version">v1.0.0</div>
+            </>
+          )}
         </div>
       </aside>
 
