@@ -802,21 +802,8 @@ const Scan = () => {
             </div>
           </div>
 
-          {/* Results Actions - Removed Generate QR button */}
-          <div className="scan-results-actions">
-            <button className="scan-action-btn primary cursor-target">
-              <FileText size={16} />
-              Generate Report
-            </button>
-            <button className="scan-action-btn secondary cursor-target">
-              <Download size={16} />
-              Export PDF
-            </button>
-            <button className="scan-action-btn secondary cursor-target">
-              <Eye size={16} />
-              View Details
-            </button>
-          </div>
+          {/* Results Actions */}
+          
         </div>
       )}
 
@@ -842,11 +829,7 @@ const Scan = () => {
               </div>
               <div>
                 <h2>{selectedCheck.title || selectedCheck.name}</h2>
-                {selectedCheck.status && (
-                  <span className="scan-modal-status" style={{ color: selectedCheck.color }}>
-                    Status: {selectedCheck.status}
-                  </span>
-                )}
+                
               </div>
             </div>
 
@@ -932,25 +915,11 @@ const Scan = () => {
                 </div>
               )}
 
-              {/* Check Result if available */}
-              {selectedCheck.details && (
-                <div className="scan-modal-section result">
-                  <h3>
-                    <Activity size={16} />
-                    Result Details
-                  </h3>
-                  <div className="scan-modal-result">
-                    <p>{selectedCheck.details}</p>
-                  </div>
-                </div>
-              )}
+              
             </div>
 
             <div className="scan-modal-footer">
-              <button className="scan-modal-btn primary" onClick={closeModal}>
-                <CheckCircle size={16} />
-                Got It
-              </button>
+              
               <button className="scan-modal-btn secondary" onClick={closeModal}>
                 Close
               </button>
