@@ -1,4 +1,4 @@
-/* src/pages/scan/Scan.css */
+/* src/pages/scan/Scan.css - COMPLETE FIXED VERSION */
 
 /* ===== CSS VARIABLES ===== */
 :root {
@@ -22,17 +22,23 @@
   --gradient-end: #764ba2;
 }
 
-/* ===== SCAN CONTAINER - WIDER ===== */
+/* ============================================
+   SCAN CONTAINER - MATCH DASHBOARD WIDTH
+   ============================================ */
 .scan-page-container {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px 32px;
   color: var(--text-primary);
   background: var(--bg-primary);
   min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* ===== SCAN HEADER WITH GRADIENT ===== */
+/* ============================================
+   SCAN HEADER WITH GRADIENT
+   ============================================ */
 .scan-page-header {
   background: linear-gradient(135deg, #0b2b4a 0%, #1a3d5e 50%, #2d7aff 100%);
   border-radius: 16px;
@@ -45,9 +51,10 @@
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Decorative circles in background */
 .scan-page-header::before {
   content: '';
   position: absolute;
@@ -134,9 +141,12 @@
 .stat-icon-yellow { color: #fdcb6e; }
 .stat-icon-green { color: #43e97b; }
 
-/* ===== FORM SECTION - WIDER ===== */
+/* ============================================
+   FORM SECTION
+   ============================================ */
 .scan-form-section {
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .scan-page-form-wrapper {
@@ -150,6 +160,8 @@
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .scan-page-form:hover {
@@ -190,6 +202,7 @@
   display: flex;
   gap: 1.25rem;
   align-items: center;
+  width: 100%;
 }
 
 .scan-page-input-group {
@@ -221,6 +234,7 @@
   outline: none;
   color: var(--text-primary);
   font-size: 1rem;
+  padding: 0.75rem 0;
 }
 
 .scan-page-input::placeholder {
@@ -272,9 +286,12 @@
   to { transform: rotate(360deg); }
 }
 
-/* ===== QUICK URLS ===== */
+/* ============================================
+   QUICK URLS
+   ============================================ */
 .scan-quick-urls {
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .quick-urls-content {
@@ -282,6 +299,7 @@
   align-items: center;
   gap: 1.5rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .scan-quick-label {
@@ -320,9 +338,12 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ===== SCANNING STATUS ===== */
+/* ============================================
+   SCANNING STATUS
+   ============================================ */
 .scan-page-status-wrapper {
   margin: 2rem 0;
+  width: 100%;
 }
 
 .scan-page-status-card {
@@ -334,6 +355,8 @@
   border-radius: 16px;
   align-items: stretch;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .scan-status-left {
@@ -455,9 +478,12 @@
   color: var(--warning-color);
 }
 
-/* ===== SECURITY CHECKS SECTION - WIDER GRID ===== */
+/* ============================================
+   SECURITY CHECKS SECTION
+   ============================================ */
 .scan-checks-section {
   margin: 2.5rem 0;
+  width: 100%;
 }
 
 .scan-checks-header {
@@ -465,6 +491,9 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .scan-checks-title {
@@ -487,6 +516,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.25rem;
+  width: 100%;
 }
 
 .scan-type-item {
@@ -532,9 +562,12 @@
   text-align: center;
 }
 
-/* ===== RESULTS ===== */
+/* ============================================
+   RESULTS
+   ============================================ */
 .scan-page-results {
   margin-top: 2.5rem;
+  width: 100%;
 }
 
 .scan-results-header {
@@ -542,6 +575,9 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .scan-results-title {
@@ -569,6 +605,7 @@
 
 .scan-results-overview {
   margin-bottom: 2.5rem;
+  width: 100%;
 }
 
 .scan-score-container {
@@ -580,6 +617,9 @@
   border: 1px solid var(--border-color);
   border-radius: 16px;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .scan-score-circle {
@@ -629,6 +669,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
+  min-width: 200px;
 }
 
 .scan-score-stat {
@@ -666,9 +707,12 @@
   color: var(--text-primary);
 }
 
-/* ===== CHECKS LIST ===== */
+/* ============================================
+   CHECKS LIST
+   ============================================ */
 .scan-checks-list {
   margin: 2.5rem 0;
+  width: 100%;
 }
 
 .scan-checks-list-title {
@@ -682,6 +726,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  width: 100%;
 }
 
 .scan-check-item {
@@ -697,6 +742,8 @@
   border-bottom: 1px solid var(--border-color);
   transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .scan-check-item.clickable {
@@ -740,6 +787,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .scan-check-header-left {
@@ -764,19 +814,27 @@
   font-weight: 500;
 }
 
+.scan-check-status-text {
+  color: var(--text-primary);
+}
+
 .scan-check-details {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin: 0;
 }
 
-/* ===== RESULTS ACTIONS ===== */
+/* ============================================
+   RESULTS ACTIONS
+   ============================================ */
 .scan-results-actions {
   display: flex;
-  gap: 1.25rem;
-  margin-top: 2.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-color);
+  width: 100%;
 }
 
 .scan-action-btn {
@@ -813,8 +871,10 @@
   color: var(--text-primary);
 }
 
-/* ===== POPUP STYLES ===== */
-.scan-popup-overlay {
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+.scan-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -835,7 +895,7 @@
   to { opacity: 1; }
 }
 
-.scan-popup {
+.scan-modal-content {
   background: var(--bg-card);
   border-radius: 20px;
   padding: 35px;
@@ -860,25 +920,25 @@
   }
 }
 
-.scan-popup::-webkit-scrollbar {
+.scan-modal-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.scan-popup::-webkit-scrollbar-track {
+.scan-modal-content::-webkit-scrollbar-track {
   background: var(--bg-secondary);
   border-radius: 10px;
 }
 
-.scan-popup::-webkit-scrollbar-thumb {
+.scan-modal-content::-webkit-scrollbar-thumb {
   background: var(--border-dark);
   border-radius: 10px;
 }
 
-.scan-popup::-webkit-scrollbar-thumb:hover {
+.scan-modal-content::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
-.scan-popup-close {
+.scan-modal-close {
   position: sticky;
   top: 0;
   float: right;
@@ -894,31 +954,25 @@
   z-index: 10;
 }
 
-.scan-popup-close:hover {
+.scan-modal-close:hover {
   background: rgba(245, 87, 108, 0.1);
   color: var(--danger-color);
   transform: rotate(90deg);
 }
 
-.scan-popup-header {
+.scan-modal-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  margin-top: -8px;
+  border-bottom: 3px solid;
+  width: 100%;
 }
 
-.scan-popup-title-wrapper {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.scan-popup-title-icon {
-  width: 52px;
-  height: 52px;
+.scan-modal-icon {
+  width: 56px;
+  height: 56px;
   border-radius: 14px;
   display: flex;
   align-items: center;
@@ -926,48 +980,32 @@
   flex-shrink: 0;
 }
 
-.scan-popup-title-wrapper h2 {
+.scan-modal-header h2 {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
+  margin: 0;
 }
 
-.scan-popup-status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
+.scan-modal-status {
+  font-size: 0.85rem;
   font-weight: 500;
-  margin-top: 0.25rem;
 }
 
-.scan-popup-risk-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.25rem;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.scan-popup-body {
+.scan-modal-body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-.scan-popup-section {
+.scan-modal-section {
   background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.25rem;
   border: 1px solid var(--border-color);
 }
 
-.scan-popup-section h3 {
+.scan-modal-section h3 {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -977,22 +1015,53 @@
   gap: 0.5rem;
 }
 
-.scan-popup-section p {
+.scan-modal-section p {
   color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.6;
   margin: 0;
 }
 
-.scan-popup-checklist,
-.scan-popup-recommendations {
+.scan-modal-section.importance {
+  background: rgba(245, 87, 108, 0.05);
+  border-color: rgba(245, 87, 108, 0.1);
+}
+
+.scan-modal-section.importance h3 {
+  color: var(--danger-color);
+}
+
+.scan-modal-section.recommendations {
+  background: rgba(67, 233, 123, 0.05);
+  border-color: rgba(67, 233, 123, 0.1);
+}
+
+.scan-modal-section.recommendations h3 {
+  color: var(--success-color);
+}
+
+.scan-modal-section.risk {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.scan-modal-risk {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.scan-modal-checklist,
+.scan-modal-recommendations {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.scan-popup-checklist li,
-.scan-popup-recommendations li {
+.scan-modal-checklist li,
+.scan-modal-recommendations li {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -1002,14 +1071,9 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.scan-popup-checklist li:last-child,
-.scan-popup-recommendations li:last-child {
+.scan-modal-checklist li:last-child,
+.scan-modal-recommendations li:last-child {
   border-bottom: none;
-}
-
-.scan-popup-checklist li svg {
-  flex-shrink: 0;
-  margin-top: 0.125rem;
 }
 
 .recommendation-dot {
@@ -1020,57 +1084,71 @@
   margin-top: 0.375rem;
 }
 
-.importance-section {
-  background: rgba(245, 87, 108, 0.05);
-  border-color: rgba(245, 87, 108, 0.1);
+.scan-modal-result {
+  background: var(--bg-input);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--primary-color);
 }
 
-.importance-section h3 {
-  color: var(--danger-color);
+.scan-modal-result p {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin: 0;
 }
 
-.recommendations-section {
-  background: rgba(67, 233, 123, 0.05);
-  border-color: rgba(67, 233, 123, 0.1);
-}
-
-.recommendations-section h3 {
-  color: var(--success-color);
-}
-
-.scan-popup-footer {
+.scan-modal-footer {
   margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-color);
   display: flex;
+  gap: 0.75rem;
   justify-content: flex-end;
 }
 
-.scan-popup-btn {
+.scan-modal-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.75rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 10px;
-  color: var(--text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.scan-popup-btn:hover {
+.scan-modal-btn.primary {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  color: #ffffff;
+}
+
+.scan-modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.scan-modal-btn.secondary {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.scan-modal-btn.secondary:hover {
   background: var(--bg-input);
   color: var(--text-primary);
 }
 
-/* ===== CURSOR UTILITIES ===== */
+/* ============================================
+   CURSOR UTILITIES
+   ============================================ */
 .cursor-target {
   cursor: pointer !important;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 @media (max-width: 1024px) {
   .scan-page-container {
     padding: 20px 24px;
@@ -1126,6 +1204,7 @@
 
   .scan-form {
     flex-direction: column;
+    width: 100%;
   }
 
   .scan-page-btn {
@@ -1169,23 +1248,15 @@
     justify-content: center;
   }
 
-  .scan-popup {
-    padding: 20px;
+  .scan-modal-content {
+    padding: 24px 20px 20px;
     max-width: 95%;
   }
 
-  .scan-popup-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .scan-popup-title-wrapper {
+  .scan-modal-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .scan-popup-risk-badge {
-    align-self: flex-start;
+    gap: 0.75rem;
   }
 
   .scan-check-click-hint {
@@ -1278,29 +1349,31 @@
     font-size: 0.75rem;
   }
 
-  .scan-popup {
+  .scan-modal-content {
     padding: 16px;
   }
 
-  .scan-popup-title-wrapper h2 {
+  .scan-modal-header h2 {
     font-size: 1.1rem;
   }
 
-  .scan-popup-section {
+  .scan-modal-section {
     padding: 0.9rem;
   }
 
-  .scan-popup-section p {
+  .scan-modal-section p {
     font-size: 0.85rem;
   }
 
-  .scan-popup-checklist li,
-  .scan-popup-recommendations li {
+  .scan-modal-checklist li,
+  .scan-modal-recommendations li {
     font-size: 0.85rem;
   }
 }
 
-/* ===== DARK THEME OVERRIDES ===== */
+/* ============================================
+   DARK THEME OVERRIDES
+   ============================================ */
 [data-theme="dark"] .scan-page-container {
   background: var(--bg-primary);
 }
@@ -1329,11 +1402,11 @@
   background: var(--bg-secondary);
 }
 
-[data-theme="dark"] .scan-popup {
+[data-theme="dark"] .scan-modal-content {
   background: var(--bg-card);
 }
 
-[data-theme="dark"] .scan-popup-section {
+[data-theme="dark"] .scan-modal-section {
   background: var(--bg-secondary);
 }
 
@@ -1365,11 +1438,11 @@
   background: var(--bg-secondary);
 }
 
-[data-theme="dark"] .scan-popup-btn {
+[data-theme="dark"] .scan-modal-btn.secondary {
   background: var(--bg-secondary);
 }
 
-[data-theme="dark"] .scan-popup-btn:hover {
+[data-theme="dark"] .scan-modal-btn.secondary:hover {
   background: var(--bg-input);
 }
 
@@ -1391,11 +1464,11 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-[data-theme="dark"] .scan-popup-close {
+[data-theme="dark"] .scan-modal-close {
   background: var(--bg-secondary);
 }
 
-[data-theme="dark"] .scan-popup-close:hover {
+[data-theme="dark"] .scan-modal-close:hover {
   background: rgba(245, 87, 108, 0.1);
 }
 
@@ -1415,89 +1488,557 @@
   stroke: var(--border-color);
 }
 
-[data-theme="dark"] .importance-section {
+[data-theme="dark"] .scan-modal-section.importance {
   background: rgba(245, 87, 108, 0.05);
   border-color: rgba(245, 87, 108, 0.1);
 }
 
-[data-theme="dark"] .recommendations-section {
+[data-theme="dark"] .scan-modal-section.recommendations {
   background: rgba(67, 233, 123, 0.05);
   border-color: rgba(67, 233, 123, 0.1);
 }
-/* src/pages/scan/Scan.css - Add these styles */
 
-.scan-qr-gen-btn {
+[data-theme="dark"] .scan-modal-result {
+  background: var(--bg-input);
+}
+/* ============================================
+   MODAL STYLES - Enterprise Grade
+   ============================================ */
+
+.scan-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  background: #8b5cf6;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: modalFadeIn 0.25s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.scan-modal-content {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 32px 36px 28px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-color);
+  animation: modalSlideUp 0.3s ease;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Scrollbar */
+.scan-modal-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scan-modal-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+
+.scan-modal-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+.scan-modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+.scan-modal-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  z-index: 10;
+  cursor: pointer;
+  margin-top: -8px;
+  margin-right: -10px;
 }
 
-.scan-qr-gen-btn:hover:not(:disabled) {
-  background: #7c3aed;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+.scan-modal-close:hover {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: var(--red);
+  color: var(--red);
+  transform: rotate(90deg);
 }
 
-.scan-qr-gen-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.scan-modal-close svg {
+  width: 18px;
+  height: 18px;
 }
 
-.scan-qr-gen-btn svg {
+/* ============================================
+   MODAL HEADER
+   ============================================ */
+.scan-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid;
+  margin-top: 4px;
+}
+
+.scan-modal-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-/* Results actions with QR button */
-.scan-results-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+.scan-modal-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
-.scan-action-btn {
+.scan-modal-header h2 {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.scan-modal-status {
+  font-size: 13px;
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+
+/* ============================================
+   MODAL BODY
+   ============================================ */
+.scan-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ============================================
+   MODAL SECTION - Base
+   ============================================ */
+.scan-modal-section {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.scan-modal-section:hover {
+  border-color: var(--border-hover);
+}
+
+.scan-modal-section h3 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 10px 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.scan-modal-section h3 svg {
+  width: 15px;
+  height: 15px;
+  opacity: 0.7;
+}
+
+.scan-modal-section p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ============================================
+   DESCRIPTION SECTION
+   ============================================ */
+.scan-modal-section.description {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.scan-modal-section.description h3 {
+  color: var(--text-muted);
+}
+
+/* ============================================
+   WHAT WE CHECK - Checklist
+   ============================================ */
+.scan-modal-section.checks {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.scan-modal-section.checks h3 {
+  color: var(--text-muted);
+}
+
+.scan-modal-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scan-modal-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color);
+  line-height: 1.5;
+}
+
+.scan-modal-checklist li:last-child {
+  border-bottom: none;
+}
+
+.scan-modal-checklist li svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ============================================
+   WHY IT MATTERS - Importance
+   ============================================ */
+.scan-modal-section.importance {
+  background: rgba(220, 38, 38, 0.04);
+  border-color: rgba(220, 38, 38, 0.1);
+}
+
+.scan-modal-section.importance h3 {
+  color: var(--red);
+}
+
+.scan-modal-section.importance p {
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   RISK LEVEL
+   ============================================ */
+.scan-modal-section.risk {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.scan-modal-section.risk h3 {
+  color: var(--text-muted);
+}
+
+.scan-modal-risk {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ============================================
+   RECOMMENDATIONS
+   ============================================ */
+.scan-modal-section.recommendations {
+  background: rgba(22, 163, 74, 0.04);
+  border-color: rgba(22, 163, 74, 0.1);
+}
+
+.scan-modal-section.recommendations h3 {
+  color: var(--green);
+}
+
+.scan-modal-recommendations {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scan-modal-recommendations li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color);
+  line-height: 1.5;
+}
+
+.scan-modal-recommendations li:last-child {
+  border-bottom: none;
+}
+
+.recommendation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+/* ============================================
+   RESULT DETAILS
+   ============================================ */
+.scan-modal-section.result {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.scan-modal-section.result h3 {
+  color: var(--text-muted);
+}
+
+.scan-modal-result {
+  background: var(--bg-input);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 3px solid var(--blue);
+}
+
+.scan-modal-result p {
+  color: var(--text-primary);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ============================================
+   MODAL FOOTER
+   ============================================ */
+.scan-modal-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.scan-modal-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 24px;
   border: none;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.scan-action-btn.primary {
-  background: #2563eb;
+.scan-modal-btn.primary {
+  background: var(--blue);
   color: #ffffff;
 }
 
-.scan-action-btn.primary:hover {
-  background: #1d4ed8;
+.scan-modal-btn.primary:hover {
+  background: var(--blue-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
 }
 
-.scan-action-btn.secondary {
-  background: #f8fafc;
-  color: #1e293b;
-  border: 1px solid #e2e8f0;
+.scan-modal-btn.primary:active {
+  transform: translateY(0);
 }
 
-.scan-action-btn.secondary:hover {
-  background: #f1f5f9;
-  transform: translateY(-2px);
+.scan-modal-btn.secondary {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.scan-modal-btn.secondary:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.scan-modal-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .scan-modal-overlay {
+    padding: 10px;
+  }
+
+  .scan-modal-content {
+    padding: 20px 18px 18px;
+    max-width: 100%;
+    border-radius: 14px;
+    max-height: 85vh;
+  }
+
+  .scan-modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+
+  .scan-modal-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .scan-modal-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .scan-modal-header h2 {
+    font-size: 17px;
+  }
+
+  .scan-modal-status {
+    font-size: 12px;
+  }
+
+  .scan-modal-body {
+    gap: 12px;
+  }
+
+  .scan-modal-section {
+    padding: 12px 14px;
+  }
+
+  .scan-modal-section p {
+    font-size: 13px;
+  }
+
+  .scan-modal-checklist li,
+  .scan-modal-recommendations li {
+    font-size: 12px;
+    padding: 5px 0;
+  }
+
+  .scan-modal-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .scan-modal-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+  }
+
+  .scan-modal-close {
+    width: 30px;
+    height: 30px;
+    margin-top: -4px;
+    margin-right: -4px;
+  }
+
+  .scan-modal-close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .scan-modal-risk {
+    font-size: 12px;
+    padding: 3px 14px;
+  }
+
+  .scan-modal-result {
+    padding: 8px 12px;
+  }
+
+  .scan-modal-result p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scan-modal-content {
+    padding: 16px 14px 14px;
+    border-radius: 12px;
+  }
+
+  .scan-modal-header h2 {
+    font-size: 15px;
+  }
+
+  .scan-modal-section {
+    padding: 10px 12px;
+  }
+
+  .scan-modal-section h3 {
+    font-size: 10px;
+  }
+
+  .scan-modal-section p {
+    font-size: 12px;
+  }
+
+  .scan-modal-checklist li,
+  .scan-modal-recommendations li {
+    font-size: 11px;
+    padding: 4px 0;
+  }
+
+  .scan-modal-btn {
+    font-size: 12px;
+    padding: 9px 14px;
+  }
+
+  .scan-modal-risk {
+    font-size: 11px;
+    padding: 2px 12px;
+  }
+
+  .scan-modal-result p {
+    font-size: 11px;
+  }
 }

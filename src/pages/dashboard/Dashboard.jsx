@@ -2,10 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { historyService } from '../../services/historyService';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Shield, Plus, FileText,
-  AlertTriangle, Activity, Award, CheckCircle
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import './Dashboard.css';
 import ScanModal from '../../components/ScanModal/ScanModal';
 import WelcomeCard from './components/WelcomeCard';
@@ -110,7 +107,7 @@ const Dashboard = () => {
               className="btn-primary cursor-target" 
               onClick={handleNewScan}
             >
-              <Plus size={18} />
+              <Plus size={16} />
               New Scan
             </button>
           </div>
@@ -127,34 +124,24 @@ const Dashboard = () => {
             title="Security Score"
             value={data.overallScore}
             suffix="%"
-            icon={Award}
             color="blue"
             description="Overall security posture"
-            trend="up"
-            trendValue="3%"
           />
           <DashboardStatCard
             title="Scans This Month"
             value={data.scansThisMonth}
-            icon={Activity}
             color="green"
             description="Security scans performed"
-            trend="up"
-            trendValue="12%"
           />
           <DashboardStatCard
             title="Critical Issues"
             value={data.issuesFound}
-            icon={AlertTriangle}
             color="red"
             description="Require immediate attention"
-            trend="down"
-            trendValue="2"
           />
           <DashboardStatCard
             title="Passed Checks"
             value={data.passedChecks}
-            icon={CheckCircle}
             color="green"
             description="Security checks passed"
           />

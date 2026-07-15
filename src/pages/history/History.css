@@ -1828,3 +1828,1503 @@
     font-size: 12px;
   }
 }
+.scan-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.scan-history-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.scan-score-badge {
+    background: linear-gradient(135deg,#22c55e,#16a34a);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+/* ============================================
+   POPUP - CLEAN SCAN RESULTS STYLE
+   ============================================ */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.popup-container {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 35px;
+  max-width: 750px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popup-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popup-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+
+.popup-container::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 10px;
+}
+
+.popup-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
+}
+
+.popup-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: var(--bg-secondary);
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.popup-close:hover {
+  background: rgba(245, 87, 108, 0.15);
+  color: var(--danger-color);
+  transform: rotate(90deg);
+}
+
+/* Popup Header */
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.popup-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.popup-title h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.popup-date {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popup-id {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: block;
+}
+
+/* Popup Score Section */
+.popup-score-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+.popup-score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+
+.popup-score-info h3 {
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  font-size: 18px;
+}
+
+.popup-score-info p {
+  color: var(--text-secondary);
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup-stats-mini {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.popup-stats-mini span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Popup Findings */
+.popup-findings {
+  margin-bottom: 24px;
+}
+
+.popup-findings h4 {
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.popup-finding-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.popup-finding-item.pass {
+  border-left-color: #43e97b;
+}
+
+.popup-finding-item.warn {
+  border-left-color: #fdcb6e;
+}
+
+.popup-finding-item.fail {
+  border-left-color: #f5576c;
+}
+
+.popup-finding-item:hover {
+  background: var(--bg-input);
+}
+
+.finding-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.finding-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.finding-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.finding-detail {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.finding-impact {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.finding-impact strong {
+  color: var(--text-secondary);
+}
+
+.finding-recommendation {
+  color: var(--text-primary);
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-input);
+  border-radius: 6px;
+}
+
+.finding-recommendation strong {
+  color: var(--text-secondary);
+}
+
+.finding-recommendation svg {
+  color: var(--gradient-start);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Finding Severity */
+.finding-severity {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: 12px;
+  height: fit-content;
+  flex-shrink: 0;
+}
+
+.finding-severity.low {
+  background: rgba(67, 233, 123, 0.1);
+  color: #43e97b;
+}
+
+.finding-severity.medium {
+  background: rgba(253, 203, 110, 0.1);
+  color: #fdcb6e;
+}
+
+.finding-severity.high {
+  background: rgba(245, 87, 108, 0.1);
+  color: #f5576c;
+}
+
+/* Popup Footer */
+.popup-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-download {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.btn-download {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  color: white;
+}
+
+.btn-download:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-download:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Status Badge inside popup */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.secure {
+  background: rgba(67, 233, 123, 0.1);
+  color: #43e97b;
+}
+
+.status-badge.moderate {
+  background: rgba(253, 203, 110, 0.1);
+  color: #fdcb6e;
+}
+
+.status-badge.critical {
+  background: rgba(245, 87, 108, 0.1);
+  color: #f5576c;
+}
+
+/* Spinner */
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+  .popup-overlay {
+    padding: 10px;
+  }
+
+  .popup-container {
+    padding: 20px;
+    max-width: 100%;
+    border-radius: 16px;
+    max-height: 85vh;
+  }
+
+  .popup-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .popup-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .popup-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .popup-title h2 {
+    font-size: 17px;
+  }
+
+  .popup-date {
+    font-size: 12px;
+  }
+
+  .popup-id {
+    font-size: 11px;
+  }
+
+  .popup-score-section {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .popup-score-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+  }
+
+  .popup-score-info h3 {
+    font-size: 16px;
+  }
+
+  .popup-score-info p {
+    font-size: 13px;
+    justify-content: center;
+  }
+
+  .popup-stats-mini {
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .popup-findings h4 {
+    font-size: 14px;
+  }
+
+  .popup-finding-item {
+    flex-direction: column;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .finding-icon {
+    align-self: flex-start;
+  }
+
+  .finding-label {
+    font-size: 13px;
+  }
+
+  .finding-detail {
+    font-size: 12px;
+  }
+
+  .finding-impact {
+    font-size: 11px;
+  }
+
+  .finding-recommendation {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .finding-severity {
+    align-self: flex-start;
+    font-size: 9px;
+    padding: 1px 8px;
+  }
+
+  .popup-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .btn-secondary,
+  .btn-download {
+    width: 100%;
+    justify-content: center;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .popup-close {
+    padding: 6px;
+  }
+
+  .popup-close svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .popup-container {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .popup-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .popup-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .popup-title h2 {
+    font-size: 15px;
+  }
+
+  .popup-date {
+    font-size: 11px;
+  }
+
+  .popup-id {
+    font-size: 10px;
+  }
+
+  .popup-score-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+    border-width: 3px;
+  }
+
+  .popup-score-info h3 {
+    font-size: 14px;
+  }
+
+  .popup-score-info p {
+    font-size: 12px;
+  }
+
+  .popup-stats-mini {
+    font-size: 11px;
+  }
+
+  .popup-stats-mini svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .popup-findings h4 {
+    font-size: 13px;
+  }
+
+  .popup-finding-item {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .finding-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .finding-label {
+    font-size: 12px;
+  }
+
+  .finding-detail {
+    font-size: 11px;
+  }
+
+  .finding-impact {
+    font-size: 10px;
+  }
+
+  .finding-recommendation {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .finding-recommendation svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .finding-severity {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+
+  .btn-secondary,
+  .btn-download {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .btn-secondary svg,
+  .btn-download svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .popup-close {
+    padding: 4px;
+  }
+
+  .popup-close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .spinner-small {
+    width: 12px;
+    height: 12px;
+    border-width: 1.5px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .popup-container {
+    max-height: 80vh;
+    padding: 16px;
+  }
+
+  .popup-score-section {
+    padding: 12px;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .popup-score-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+  }
+
+  .popup-finding-item {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .popup-header {
+    flex-direction: row;
+    text-align: left;
+    gap: 12px;
+  }
+
+  .popup-footer {
+    flex-direction: row;
+  }
+
+  .btn-secondary,
+  .btn-download {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+}
+/* ============================================
+   POPUP - ENTERPRISE SCAN RESULTS STYLE
+   ============================================ */
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.popup-container {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 32px 34px 28px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Scrollbar */
+.popup-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.popup-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+}
+
+.popup-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+.popup-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Close Button */
+.popup-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  cursor: pointer;
+  margin-top: -8px;
+  margin-right: -8px;
+}
+
+.popup-close:hover {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: var(--red);
+  color: var(--red);
+  transform: rotate(90deg);
+}
+
+.popup-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================
+   POPUP HEADER
+   ============================================ */
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.popup-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.popup-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.popup-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.popup-title h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
+  letter-spacing: -0.3px;
+}
+
+.popup-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.popup-date svg {
+  width: 13px;
+  height: 13px;
+}
+
+.popup-id {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+/* ============================================
+   POPUP SCORE SECTION
+   ============================================ */
+.popup-score-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 20px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  margin-bottom: 22px;
+  border: 1px solid var(--border-color);
+}
+
+.popup-score-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+
+.popup-score-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.popup-score-info h3 {
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.popup-score-info p {
+  color: var(--text-secondary);
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-badge.secure {
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--green);
+}
+
+.status-badge.moderate {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--yellow);
+}
+
+.status-badge.critical {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--red);
+}
+
+.popup-stats-mini {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.popup-stats-mini span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.popup-stats-mini svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================
+   POPUP FINDINGS - WITH BULLET POINTS
+   ============================================ */
+.popup-findings {
+  margin-bottom: 22px;
+}
+
+.popup-findings h4 {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.popup-findings h4 svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.popup-finding-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-left: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.popup-finding-item:last-child {
+  margin-bottom: 0;
+}
+
+.popup-finding-item:hover {
+  background: var(--bg-input);
+}
+
+.popup-finding-item.pass {
+  border-left-color: var(--green);
+}
+
+.popup-finding-item.warn {
+  border-left-color: var(--yellow);
+}
+
+.popup-finding-item.fail {
+  border-left-color: var(--red);
+}
+
+.finding-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.finding-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.finding-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.finding-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.finding-detail {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 4px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.finding-detail::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+.finding-impact {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-bottom: 4px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.finding-impact::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+.finding-impact strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.finding-recommendation {
+  color: var(--text-primary);
+  font-size: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  margin-top: 2px;
+}
+
+.finding-recommendation strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.finding-recommendation svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--blue);
+}
+
+.finding-severity {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: 10px;
+  height: fit-content;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+.finding-severity.low {
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--green);
+}
+
+.finding-severity.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--yellow);
+}
+
+.finding-severity.high {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--red);
+}
+
+/* Alternative bullet style using list-style */
+.popup-finding-details-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+}
+
+.popup-finding-details-list li {
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 2px 0 2px 16px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.popup-finding-details-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   POPUP FOOTER
+   ============================================ */
+.popup-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-secondary {
+  padding: 8px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.btn-secondary svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-download {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--blue);
+  color: white;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-download:hover:not(:disabled) {
+  background: var(--blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-download:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-download svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Spinner */
+.spinner-small {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+  .popup-overlay {
+    padding: 10px;
+  }
+
+  .popup-container {
+    padding: 20px 18px 18px;
+    border-radius: 14px;
+    max-height: 85vh;
+  }
+
+  .popup-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .popup-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .popup-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .popup-title h2 {
+    font-size: 16px;
+  }
+
+  .popup-date {
+    font-size: 11px;
+    justify-content: center;
+  }
+
+  .popup-id {
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .popup-score-section {
+    flex-direction: column;
+    text-align: center;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .popup-score-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+    border-width: 3px;
+  }
+
+  .popup-score-info h3 {
+    font-size: 15px;
+  }
+
+  .popup-score-info p {
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .popup-stats-mini {
+    font-size: 11px;
+    justify-content: center;
+  }
+
+  .popup-findings h4 {
+    font-size: 12px;
+  }
+
+  .popup-finding-item {
+    flex-direction: column;
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .finding-icon {
+    align-self: flex-start;
+  }
+
+  .finding-label {
+    font-size: 12px;
+  }
+
+  .finding-detail {
+    font-size: 11px;
+    padding-left: 14px;
+  }
+
+  .finding-impact {
+    font-size: 10px;
+    padding-left: 14px;
+  }
+
+  .finding-recommendation {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .finding-severity {
+    align-self: flex-start;
+    font-size: 8px;
+    padding: 1px 8px;
+  }
+
+  .popup-finding-details-list li {
+    font-size: 11px;
+    padding: 2px 0 2px 14px;
+  }
+
+  .popup-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .btn-secondary,
+  .btn-download {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 10px 16px;
+  }
+
+  .popup-close {
+    width: 30px;
+    height: 30px;
+    margin-top: -4px;
+    margin-right: -4px;
+  }
+
+  .popup-close svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .popup-container {
+    padding: 16px 14px 14px;
+    border-radius: 12px;
+  }
+
+  .popup-header {
+    gap: 8px;
+  }
+
+  .popup-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .popup-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .popup-title h2 {
+    font-size: 14px;
+  }
+
+  .popup-score-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 17px;
+  }
+
+  .popup-score-info h3 {
+    font-size: 14px;
+  }
+
+  .popup-score-info p {
+    font-size: 11px;
+  }
+
+  .popup-stats-mini {
+    font-size: 10px;
+  }
+
+  .popup-finding-item {
+    padding: 8px 10px;
+  }
+
+  .finding-label {
+    font-size: 11px;
+  }
+
+  .finding-detail {
+    font-size: 10px;
+    padding-left: 12px;
+  }
+
+  .finding-impact {
+    font-size: 9px;
+    padding-left: 12px;
+  }
+
+  .finding-recommendation {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
+
+  .popup-finding-details-list li {
+    font-size: 10px;
+    padding: 2px 0 2px 12px;
+  }
+
+  .btn-secondary,
+  .btn-download {
+    font-size: 11px;
+    padding: 8px 14px;
+  }
+
+  .spinner-small {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .popup-container {
+    max-height: 80vh;
+    padding: 16px 20px;
+  }
+
+  .popup-score-section {
+    flex-direction: row;
+    padding: 12px 16px;
+    gap: 16px;
+  }
+
+  .popup-score-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .popup-finding-item {
+    padding: 8px 12px;
+  }
+
+  .popup-header {
+    flex-direction: row;
+    text-align: left;
+    gap: 12px;
+  }
+
+  .popup-footer {
+    flex-direction: row;
+  }
+
+  .btn-secondary,
+  .btn-download {
+    width: auto;
+  }
+}
