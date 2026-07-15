@@ -43,7 +43,7 @@ import {
 import ElectricBorder from '../../components/ElectricBorder/ElectricBorder';
 import './Scan.css';
 
-// Security check definitions - ONLY 5 CHECKS
+// Security check definitions based on the PDF
 const SECURITY_CHECKS_DEFINITIONS = {
   'SSL/TLS': {
     title: 'SSL/TLS Analysis',
@@ -141,6 +141,25 @@ const SECURITY_CHECKS_DEFINITIONS = {
       'Verify domain registration details'
     ],
     riskLevel: 'Medium'
+  },
+  'Technologies': {
+    title: 'Technology Detection',
+    description: 'Identifies technologies used by the target website to detect potential vulnerabilities.',
+    checks: [
+      'Web Server',
+      'Programming Language',
+      'JavaScript Framework',
+      'Content Management System (CMS)',
+      'Reverse Proxy/CDN'
+    ],
+    importance: 'Knowing the technologies powering your website helps identify known vulnerabilities, outdated versions, and potential security risks. Outdated or vulnerable technologies are common entry points for attackers.',
+    recommendations: [
+      'Keep all technologies updated to latest versions',
+      'Replace outdated or vulnerable components',
+      'Use secure configurations for all components',
+      'Regularly audit technology stack for vulnerabilities'
+    ],
+    riskLevel: 'Medium'
   }
 };
 
@@ -210,7 +229,15 @@ const Scan = () => {
             randomScore >= 30 ? 'Domain registration issues' : 'Domain information missing',
           icon: 'public',
           color: randomScore >= 55 ? '#22c55e' : randomScore >= 30 ? '#eab308' : '#ef4444',
-        }
+        },
+        {
+          name: 'Technologies',
+          status: randomScore >= 50 ? 'Passed' : randomScore >= 30 ? 'Warning' : 'Failed',
+          details: randomScore >= 50 ? 'No vulnerable technologies detected' :
+            randomScore >= 30 ? 'Outdated technologies found' : 'Vulnerable technologies detected',
+          icon: 'code',
+          color: randomScore >= 50 ? '#22c55e' : randomScore >= 30 ? '#eab308' : '#ef4444',
+        },
       ]
     };
   };
@@ -314,50 +341,7 @@ const Scan = () => {
 
       setScanResults(formattedResults);
       
-      historyService.saveScan({
-        id: Date.now(),
-        domain: targetUrl.replace(/^https?:\/\//, ""),
-        date: new Date().toISOString(),
-        score: formattedResults.overallScore,
-        status:
-          formattedResults.overallScore >= 80
-            ? "Secure"
-            : formattedResults.overallScore >= 50
-            ? "Needs Improvement"
-            : "Critical",
-        checks: formattedResults.checks,
-        critical: formattedResults.checks.filter(c => c.status === "Failed").length,
-        sslStatus:
-          formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Passed"
-            ? "valid"
-            : formattedResults.checks.find(c => c.name === "SSL/TLS")?.status === "Warning"
-            ? "expiring"
-            : "expired",
-        cspStatus:
-          formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
-            ? "configured"
-            : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
-            ? "partial"
-            : "missing",
-        hstsStatus:
-          formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Passed"
-            ? "enabled"
-            : formattedResults.checks.find(c => c.name === "Security Headers")?.status === "Warning"
-            ? "weak"
-            : "missing",
-        spfStatus:
-          formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Passed"
-            ? "configured"
-            : formattedResults.checks.find(c => c.name === "DNS Configuration")?.status === "Warning"
-            ? "partial"
-            : "missing",
-        portsStatus:
-          formattedResults.checks.find(c => c.name === "Network Security")?.status === "Passed"
-            ? "secured"
-            : formattedResults.checks.find(c => c.name === "Network Security")?.status === "Warning"
-            ? "warning"
-            : "exposed"
-      });
+   
 
     } catch(error){
       console.error("Scan error:", error);
@@ -440,22 +424,31 @@ const Scan = () => {
       http: Radio,
       dns: Server,
       wifi: Wifi,
-      public: Globe
+      public: Globe,
+      code: Code
     };
     return icons[iconName] || Shield;
+  };
+
+  const getRiskLevelBadge = (riskLevel) => {
+    const colors = {
+      'Critical': { bg: '#ef444420', color: '#ef4444' },
+      'High': { bg: '#f9731620', color: '#f97316' },
+      'Medium': { bg: '#eab30820', color: '#eab308' },
+      'Low': { bg: '#22c55e20', color: '#22c55e' }
+    };
+    return colors[riskLevel] || colors['Medium'];
   };
 
   const handleCheckClick = (checkName) => {
     const definition = SECURITY_CHECKS_DEFINITIONS[checkName];
     if (definition) {
-      const checkResult = scanResults?.checks.find(c => c.name === checkName);
-      
       setSelectedCheck({
         ...definition,
         name: checkName,
-        status: checkResult?.status || 'Unknown',
-        color: checkResult?.color || '#64748b',
-        details: checkResult?.details || 'No details available'
+        status: scanResults?.checks.find(c => c.name === checkName)?.status || 'Unknown',
+        color: scanResults?.checks.find(c => c.name === checkName)?.color || '#64748b',
+        details: scanResults?.checks.find(c => c.name === checkName)?.details || 'No details available'
       });
       setShowCheckModal(true);
     }
@@ -482,7 +475,7 @@ const Scan = () => {
         <div className="scan-header-stats">
           <div className="scan-header-stat cursor-target">
             <ShieldCheck size={16} className="stat-icon-blue" />
-            <span>5 Checks</span>
+            <span>6 Checks</span>
           </div>
           <div className="scan-header-stat cursor-target">
             <Zap size={16} className="stat-icon-yellow" />
@@ -620,11 +613,11 @@ const Scan = () => {
         </div>
       )}
 
-      {/* Security Checks - 5 items */}
+      {/* Security Checks */}
       <div className="scan-checks-section">
         <div className="scan-checks-header">
           <h2 className="scan-checks-title">Security Checks</h2>
-          <span className="scan-checks-count">5 comprehensive checks</span>
+          <span className="scan-checks-count">6 comprehensive checks</span>
         </div>
         <div className="scan-types">
           <div 
@@ -685,6 +678,18 @@ const Scan = () => {
             </div>
             <span className="scan-type-text">WHOIS</span>
             <span className="scan-type-desc">Domain information</span>
+          </div>
+
+          <div 
+            className="scan-type-item cursor-target" 
+            style={{ borderTopColor: '#ef4444' }}
+            onClick={() => handleCheckClick('Technologies')}
+          >
+            <div className="scan-type-icon" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+              <Code size={24} style={{ color: '#ef4444' }} />
+            </div>
+            <span className="scan-type-text">Technologies</span>
+            <span className="scan-type-desc">Tech stack detection</span>
           </div>
         </div>
       </div>
@@ -747,7 +752,7 @@ const Scan = () => {
                   <CheckCircle size={18} className="stat-icon" style={{ color: '#22c55e' }} />
                   <div>
                     <span className="stat-label">Checks Passed</span>
-                    <span className="stat-value">{scanResults.checks.filter(c => String(c.status).toLowerCase() === 'passed').length}/5</span>
+                    <span className="stat-value">{scanResults.checks.filter(c => String(c.status).toLowerCase() === 'passed').length}/6</span>
                   </div>
                 </div>
                 <div className="scan-score-stat cursor-target">
@@ -761,7 +766,6 @@ const Scan = () => {
             </div>
           </div>
 
-          {/* Detailed Security Checks - 5 items, all clickable */}
           <div className="scan-checks-list">
             <h3 className="scan-checks-list-title">Detailed Security Checks</h3>
             <div className="scan-checks-items">
@@ -831,7 +835,7 @@ const Scan = () => {
 
             <div className="scan-modal-body">
               {/* Description Section */}
-              <div className="scan-modal-section description">
+              <div className="scan-modal-section">
                 <h3>
                   <Info size={16} />
                   Description
@@ -841,7 +845,7 @@ const Scan = () => {
 
               {/* What We Check Section */}
               {selectedCheck.checks && selectedCheck.checks.length > 0 && (
-                <div className="scan-modal-section checks">
+                <div className="scan-modal-section">
                   <h3>
                     <CheckCircle size={16} />
                     What We Check
