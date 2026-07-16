@@ -6,7 +6,7 @@ import './OverallScoreCard.css';
 const OverallScoreCard = ({
   score,
   criticalIssues,
-  warnings,
+  needImprovementCount,
   passedChecks,
   totalScans,
   averageScore
@@ -68,8 +68,8 @@ const OverallScoreCard = ({
         <div className="score-stat warning">
           <AlertCircle size={16} />
           <div>
-            <span className="score-stat-value">{warnings}</span>
-            <span className="score-stat-label">Warnings</span>
+            <span className="score-stat-value">{needImprovementCount}</span>
+            <span className="score-stat-label">Improvements Needed</span>
           </div>
         </div>
         <div className="score-stat passed">

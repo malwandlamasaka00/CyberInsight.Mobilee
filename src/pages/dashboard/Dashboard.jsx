@@ -71,13 +71,19 @@ setUserName(fullName || user.email || "User");
           )
           : 0;
 
+      // Calculate passed checks (score >= 80)
+      const passedChecks = scans.filter(
+        scan => (scan.score || 0) >= 80
+      ).length;
+
+      // Calculate critical issues (score < 50)
       const issuesFound = scans.filter(
         scan => (scan.score || 0) < 50
       ).length;
 
-      const passedChecks = scans.filter(
-        scan => (scan.score || 0) >= 80
-      ).length;
+      // Calculate needs improvement (remaining scans)
+      // totalScans - passedChecks - issuesFound = needsImprovement
+      const needImprovementCount = totalScans - passedChecks - issuesFound;
 
       const recentScans = scans.slice(0, 5).map(scan => ({
         id: scan.id,
@@ -95,6 +101,7 @@ setUserName(fullName || user.email || "User");
         scansThisMonth: totalScans,
         issuesFound,
         passedChecks,
+        needImprovementCount, // Add this field
         recentScans,
         recentReports
       });
@@ -109,6 +116,7 @@ setUserName(fullName || user.email || "User");
     scansThisMonth: 0,
     issuesFound: 0,
     passedChecks: 0,
+    needImprovementCount: 0, // Initialize this field
     recentScans: [],
     recentReports: []
   });
@@ -181,6 +189,13 @@ setUserName(fullName || user.email || "User");
             color="green"
             description="Security checks passed"
           />
+          <DashboardStatCard
+            title="Needs Improvement" // Add this new stat card
+            value={data.needImprovementCount}
+            icon={Shield} // or any other icon you prefer
+            color="yellow" // or "orange" depending on your theme
+            description="Scans requiring attention"
+          />
         </div>
 
         <div className="dashboard-grid">
@@ -188,7 +203,7 @@ setUserName(fullName || user.email || "User");
             <OverallScoreCard
               score={data.overallScore}
               criticalIssues={data.issuesFound}
-              warnings={0}
+              needImprovementCount={data.needImprovementCount}
               passedChecks={data.passedChecks}
               totalScans={data.scansThisMonth}
               averageScore={data.overallScore}
